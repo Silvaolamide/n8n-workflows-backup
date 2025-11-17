@@ -1,26 +1,437 @@
 {
-  "createdAt": "2025-09-27T14:11:35.426Z",
-  "updatedAt": "2025-10-09T08:02:40.000Z",
-  "id": "9sX0aWA8kXpCOxgK",
-  "name": "telegram",
+  "createdAt": "2025-11-17T20:09:09.054Z",
+  "updatedAt": "2025-11-17T22:38:54.000Z",
+  "id": "Ds9wwXq6bSEfxV06",
+  "name": "Backup-Github",
   "active": false,
-  "isArchived": true,
-  "nodes": [],
-  "connections": {},
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "fromEmail": "silvaolamide@gmail.com",
+        "toEmail": "silvaolamide@gmail.com",
+        "subject": "✅ n8n Workflows Backed Up Successfully",
+        "options": {}
+      },
+      "id": "b509fb10-98be-43b9-9103-297bdee31f2d",
+      "name": "Send Success Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        976,
+        80
+      ],
+      "webhookId": "eb707b54-35ab-48bc-935c-e5dbfe749698",
+      "credentials": {
+        "smtp": {
+          "id": "RtmyZar0xKQayG09",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 2 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cd0ef17c-457c-4a1f-9166-4ccd57ab657e",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -832,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://drum-fleet-kite.ngrok-free.app/api/v1/workflows",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "e43656b8-314f-464d-86b3-6dcd55844c00",
+      "name": "Get All Workflows",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        80
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "yiCo7Ak6GQrIfEVP",
+          "name": "X-N8N-API-KEY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "7d3fc8a0-34e2-4ae9-ad0b-124c074bb5a8",
+      "name": "Split Into Items",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "workflowJson",
+              "value": "={{ JSON.stringify($json, null, 2) }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "workflowName",
+              "value": "={{ $json.name.replace(/[^a-z0-9]/gi, '-').toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "filename",
+              "value": "={{ $json.workflowName + '.json' }}",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "a5",
+              "name": "workflowId",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "76a23741-ecd9-4204-8d32-21c20d32fb50",
+      "name": "Prepare Individual Workflow",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        -240,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "get",
+        "owner": {
+          "__rl": true,
+          "value": "Silvaolamide",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "n8n-workflows-backup",
+          "mode": "name"
+        },
+        "filePath": "={{ 'workflows/' + $json.filename }}",
+        "additionalParameters": {}
+      },
+      "id": "4001ed17-9ade-4f27-8099-97137424ed34",
+      "name": "Check If File Exists",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        -32,
+        80
+      ],
+      "webhookId": "ff34150e-c863-4727-97fd-364440f5b610",
+      "credentials": {
+        "githubApi": {
+          "id": "UPdIohV1bl8fDXlH",
+          "name": "GitHub account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.error }}",
+              "operation": "isEmpty"
+            }
+          ]
+        }
+      },
+      "id": "7d19b6cb-0a7e-4a27-8e94-1ee2ca3f4dee",
+      "name": "Does File Exist?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        176,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "edit",
+        "owner": {
+          "__rl": true,
+          "value": "Silvaolamide",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "n8n-workflows-backup",
+          "mode": "name"
+        },
+        "filePath": "={{ 'workflows/' + $('Prepare Individual Workflow').item.json.filename }}",
+        "fileContent": "={{ $('Prepare Individual Workflow').item.json.workflowJson }}",
+        "commitMessage": "=Update: {{ $('Prepare Individual Workflow').item.json.workflowName }}"
+      },
+      "id": "162480f3-2349-45a6-8ec2-e02842204f57",
+      "name": "Update Existing File",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        -32
+      ],
+      "webhookId": "0dd6dba6-3920-4373-8c53-778dfed53663",
+      "credentials": {
+        "githubApi": {
+          "id": "UPdIohV1bl8fDXlH",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "owner": {
+          "__rl": true,
+          "value": "Silvaolamide",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "n8n-workflows-backup",
+          "mode": "name"
+        },
+        "filePath": "={{ 'workflows/' + $('Prepare Individual Workflow').item.json.filename }}",
+        "fileContent": "={{ $('Prepare Individual Workflow').item.json.workflowJson }}",
+        "commitMessage": "=Add: {{ $('Prepare Individual Workflow').item.json.workflowName }}"
+      },
+      "id": "19a00795-dbad-4cf0-80ba-f8a08f947b99",
+      "name": "Create New File",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        176
+      ],
+      "webhookId": "9e4fcb47-1111-4034-aed8-d8e60dc03906",
+      "credentials": {
+        "githubApi": {
+          "id": "UPdIohV1bl8fDXlH",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "b41e9960-d7be-427f-baeb-13bfd9dd4653",
+      "name": "Wait For All Workflows",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        576,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "total-count",
+              "name": "totalWorkflows",
+              "value": "={{ $json.length }}",
+              "type": "number"
+            },
+            {
+              "id": "timestamp",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7c4272f5-4f27-4631-bd3b-262d8d1a12fc",
+      "name": "Prepare Summary",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        768,
+        80
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get All Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Workflows": {
+      "main": [
+        [
+          {
+            "node": "Split Into Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Into Items": {
+      "main": [
+        [
+          {
+            "node": "Prepare Individual Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Individual Workflow": {
+      "main": [
+        [
+          {
+            "node": "Check If File Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If File Exists": {
+      "main": [
+        [
+          {
+            "node": "Does File Exist?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Does File Exist?": {
+      "main": [
+        [
+          {
+            "node": "Update Existing File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create New File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Existing File": {
+      "main": [
+        [
+          {
+            "node": "Wait For All Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New File": {
+      "main": [
+        [
+          {
+            "node": "Wait For All Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait For All Workflows": {
+      "main": [
+        [
+          {
+            "node": "Prepare Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Summary": {
+      "main": [
+        [
+          {
+            "node": "Send Success Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
   "settings": {
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "pinData": {},
-  "versionId": "504d9def-0771-4ca1-bae3-61cade8945a5",
+  "versionId": "a9ad04a8-202d-4f93-ad90-14ec1bc00081",
   "triggerCount": 0,
   "shared": [
     {
-      "createdAt": "2025-09-27T14:11:35.475Z",
-      "updatedAt": "2025-09-27T14:11:35.475Z",
+      "createdAt": "2025-11-17T20:09:09.086Z",
+      "updatedAt": "2025-11-17T20:09:09.086Z",
       "role": "workflow:owner",
-      "workflowId": "9sX0aWA8kXpCOxgK",
+      "workflowId": "Ds9wwXq6bSEfxV06",
       "projectId": "X54hljIRMdcuCgG9"
     }
   ],
