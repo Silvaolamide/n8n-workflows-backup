@@ -1,26 +1,214 @@
 {
-  "createdAt": "2025-09-27T14:11:35.426Z",
-  "updatedAt": "2025-10-09T08:02:40.000Z",
-  "id": "9sX0aWA8kXpCOxgK",
-  "name": "telegram",
+  "createdAt": "2025-11-17T20:09:09.054Z",
+  "updatedAt": "2025-11-17T21:44:40.000Z",
+  "id": "Ds9wwXq6bSEfxV06",
+  "name": "Backup-Github",
   "active": false,
-  "isArchived": true,
-  "nodes": [],
-  "connections": {},
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 2 * * *"
+            }
+          ]
+        }
+      },
+      "id": "b7d4a47f-3f6e-4b3f-81a9-20f2b3ad57a4",
+      "name": "Schedule Trigger1",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -304,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://drum-fleet-kite.ngrok-free.app/api/v1/workflows",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "ceb9b0e7-9071-4376-876c-b6778096a1ca",
+      "name": "Get All Workflows1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -80,
+        512
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "yiCo7Ak6GQrIfEVP",
+          "name": "X-N8N-API-KEY"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "workflowsJson",
+              "value": "={{ JSON.stringify($json.data, null, 2) }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "filename",
+              "value": "={{ 'workflows-backup-' + $now.format('yyyy-MM-dd') + '.json' }}",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "workflowCount",
+              "value": "={{ $json.data.length }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3d0a958f-7f0d-4c89-934c-9bd9426bcc79",
+      "name": "Prepare Backup Data1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        144,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "owner": {
+          "__rl": true,
+          "value": "Silvaolamide",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "n8n-workflows-backup",
+          "mode": "name",
+          "cachedResultName": "n8n-workflows-backup"
+        },
+        "filePath": "={{ 'backups/' + $json.filename }}",
+        "fileContent": "={{ $json.workflowsJson }}",
+        "commitMessage": "=Automated backup - {{ $json.timestamp }}"
+      },
+      "id": "be4454d4-ba59-49a8-8f9b-0d7d0031a45a",
+      "name": "Commit to GitHub1",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        512
+      ],
+      "webhookId": "168c5751-1129-437f-8b82-0571554699f5",
+      "credentials": {
+        "githubApi": {
+          "id": "UPdIohV1bl8fDXlH",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "silvaolamide@gmail.com",
+        "toEmail": "silvaolamide@gmail.com",
+        "subject": "✅ n8n Workflow Backup Successful",
+        "options": {}
+      },
+      "id": "f4125c0e-ad27-4266-9eed-68eda31bac1b",
+      "name": "Send Success Email1",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        576,
+        512
+      ],
+      "webhookId": "2b865a47-65ac-467b-9d59-58da9d4eb162",
+      "credentials": {
+        "smtp": {
+          "id": "RtmyZar0xKQayG09",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Get All Workflows1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Workflows1": {
+      "main": [
+        [
+          {
+            "node": "Prepare Backup Data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Backup Data1": {
+      "main": [
+        [
+          {
+            "node": "Commit to GitHub1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Commit to GitHub1": {
+      "main": [
+        [
+          {
+            "node": "Send Success Email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
   "settings": {
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "pinData": {},
-  "versionId": "504d9def-0771-4ca1-bae3-61cade8945a5",
+  "versionId": "f7c7b204-a55b-4218-bdfa-13ad9e27845a",
   "triggerCount": 0,
   "shared": [
     {
-      "createdAt": "2025-09-27T14:11:35.475Z",
-      "updatedAt": "2025-09-27T14:11:35.475Z",
+      "createdAt": "2025-11-17T20:09:09.086Z",
+      "updatedAt": "2025-11-17T20:09:09.086Z",
       "role": "workflow:owner",
-      "workflowId": "9sX0aWA8kXpCOxgK",
+      "workflowId": "Ds9wwXq6bSEfxV06",
       "projectId": "X54hljIRMdcuCgG9"
     }
   ],
