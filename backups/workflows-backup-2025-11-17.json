@@ -1,0 +1,3801 @@
+[
+  {
+    "createdAt": "2025-09-28T06:30:09.743Z",
+    "updatedAt": "2025-10-06T05:48:35.000Z",
+    "id": "6JDvZ3pYJE936ZqX",
+    "name": "Courselamy",
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "triggerTimes": {
+            "item": [
+              {
+                "mode": "everyX",
+                "value": 30,
+                "unit": "minutes"
+              }
+            ]
+          }
+        },
+        "id": "516e00c3-c09e-4f06-8dd0-ff5b592a692e",
+        "name": "Schedule Trigger1",
+        "type": "n8n-nodes-base.cron",
+        "typeVersion": 1,
+        "position": [
+          -2544,
+          -48
+        ],
+        "retryOnFail": true,
+        "maxTries": 5,
+        "waitBetweenTries": 5000
+      },
+      {
+        "parameters": {
+          "url": "https://www.discudemy.com/feed/",
+          "responseFormat": "string",
+          "options": {}
+        },
+        "id": "427bfd2e-fcf6-4fa5-9025-9b33c19c2d25",
+        "name": "Fetch RSS1",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 1,
+        "position": [
+          -2320,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "id": "d6d39a0e-4fb0-4dbc-9261-f841093648ed",
+        "name": "XML → JSON1",
+        "type": "n8n-nodes-base.xml",
+        "typeVersion": 1,
+        "position": [
+          -2096,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "// Access workflow static data in global scope\nconst seen = getWorkflowStaticData('global');\n\nconst courseId = $json.link;\n\nif (!seen.courses) {\n  seen.courses = [];\n}\n\nif (seen.courses.includes(courseId)) {\n  return [];\n}\n\nseen.courses.push(courseId);\n\nreturn [ { json: $json } ];"
+        },
+        "id": "9e1648b9-1534-4d2c-acb5-cc5e441c1ae2",
+        "name": "Filter Seen Courses",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          -1872,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "const items = $json.rss.channel.item;\n\nreturn items.map(course => {\n  const link = String(course.link || \"\");\n  // strip origin\n  const slug = link.replace(/^https?:\\/\\/www\\.discudemy\\.com\\//, \"\").replace(/^\\/+/, \"\");\n  // last part after category\n  const lastPart = slug.split(\"/\").filter(Boolean).pop();\n  const goLink = `https://www.discudemy.com/go/${lastPart}`;\n\n  return {\n    json: {\n      ...course,\n      goLink\n    }\n  };\n});"
+        },
+        "id": "8ed799ec-95e6-4aaa-b2ab-7948a2b0298a",
+        "name": "Build Go Link",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          -1648,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "url": "={{$json.goLink}}",
+          "options": {}
+        },
+        "id": "2c539baa-abef-42a3-ae62-e52667f1c4d2",
+        "name": "Fetch Go Page",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -1552,
+          176
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "const items = $items(\"Fetch Go Page\");\n\nreturn items.map((item, index) => {\n  const html = item.json.data;\n\n  const regex = /https:\\/\\/www\\.udemy\\.com\\/course\\/[^\\s\"'<>?]+[^\"'<>]*/g;\n  const match = html.match(regex);\n\n  return {\n    json: {\n      index,\n      udemyLink: match ? match[0] : null\n    }\n  };\n});"
+        },
+        "id": "238ab270-49b1-4c48-81e5-01cf10ba8aa2",
+        "name": "Extract Udemy Link",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          -1424,
+          176
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "combinationMode": "mergeByPosition",
+          "options": {}
+        },
+        "id": "cfd00771-7e0d-48ff-8598-b86ba213517a",
+        "name": "Merge Course + Udemy1",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 2,
+        "position": [
+          -1264,
+          -32
+        ]
+      },
+      {
+        "parameters": {
+          "url": "={{ $json.link }}",
+          "options": {
+            "response": {
+              "response": {
+                "responseFormat": "string"
+              }
+            }
+          }
+        },
+        "id": "168753b1-22cf-4309-97d6-df1116c77c04",
+        "name": "Fetch Discudemy Course Page",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -1072,
+          -32
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "// Extract Udemy image URL from Discudemy page HTML - PRESERVE UNDERSCORES\nconst items = $input.all();\nconst courseItems = $items('Merge Course + Udemy1');\n\nreturn items.map((item, index) => {\n  const courseData = courseItems[index].json;\n  const html = item.json.data || item.json || '';\n  \n  let udemyImageUrl = null;\n  \n  // Method 1: Direct Udemy CDN patterns for 480x270 images - DON'T MODIFY THE URL\n  const cdnPattern = /https:\\/\\/img-[a-z]\\.udemycdn\\.com\\/course\\/480x270\\/[0-9]+_[a-zA-Z0-9_]+\\.(jpg|jpeg|png|webp)/i;\n  let match = html.match(cdnPattern);\n  \n  if (match) {\n    udemyImageUrl = match[0];\n  } else {\n    // Method 2: Any Udemy CDN image - DON'T MODIFY THE URL\n    const anyUdemyPattern = /https:\\/\\/img-[a-z]\\.udemycdn\\.com\\/course\\/[^\\/]+\\/[0-9]+_[a-zA-Z0-9_]+\\.(jpg|jpeg|png|webp)/gi;\n    const matches = html.match(anyUdemyPattern);\n    \n    if (matches && matches.length > 0) {\n      // Get the first match - PRESERVE ORIGINAL URL WITH UNDERSCORES\n      udemyImageUrl = matches[0];\n    } else {\n      // Method 3: Look in meta tags\n      const metaPatterns = [\n        /<meta\\s+property=\"og:image\"\\s+content=\"([^\"]+udemycdn[^\"]+)\"/i,\n        /<meta\\s+name=\"twitter:image\"\\s+content=\"([^\"]+udemycdn[^\"]+)\"/i\n      ];\n      \n      for (const pattern of metaPatterns) {\n        match = html.match(pattern);\n        if (match) {\n          udemyImageUrl = match[1]; // PRESERVE ORIGINAL URL\n          break;\n        }\n      }\n      \n      // Method 4: Look for any image in img tags\n      if (!udemyImageUrl) {\n        const imgPattern = /<img[^>]+src=\"([^\"]+udemycdn[^\"]+)\"/gi;\n        const imgMatches = [...html.matchAll(imgPattern)];\n        if (imgMatches.length > 0) {\n          udemyImageUrl = imgMatches[0][1]; // PRESERVE ORIGINAL URL\n        }\n      }\n    }\n  }\n  \n  // Clean URL - but preserve underscores\n  if (udemyImageUrl) {\n    udemyImageUrl = udemyImageUrl.split('?')[0];\n  }\n  \n  console.log('Extracted image for course:', courseData.title, '- Image:', udemyImageUrl);\n  \n  return {\n    json: {\n      ...courseData,\n      udemyImageUrl: udemyImageUrl,\n      extractedUdemyImageUrl: udemyImageUrl,\n      hasUdemyImage: !!udemyImageUrl\n    }\n  };\n});"
+        },
+        "id": "14094cd2-3c2a-4ab4-80e3-ed098d100173",
+        "name": "Extract Udemy Image URL",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          -880,
+          -32
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 1
+            },
+            "conditions": [
+              {
+                "id": "1",
+                "leftValue": "={{ $json.udemyLink }}",
+                "rightValue": "null",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEquals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "3da49f00-7085-44d2-9a54-3dd7b6059cf9",
+        "name": "Filter Valid Courses1",
+        "type": "n8n-nodes-base.filter",
+        "typeVersion": 2,
+        "position": [
+          -880,
+          -432
+        ]
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "https://docs.google.com/spreadsheets/d/1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0/edit?pli=1&gid=0#gid=0",
+            "mode": "url"
+          },
+          "options": {}
+        },
+        "id": "104a4923-7196-4139-b18b-b63d66924af9",
+        "name": "Read Existing Courses1",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4,
+        "position": [
+          -672,
+          -432
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "6A2XF4qDywhaZUBb",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "functionCode": "// Get all existing udemyLinks from the sheet\nconst existingRecords = $items(\"Read Existing Courses1\");\nconst existingLinks = new Set(\n  existingRecords.map(record => record.json.udemyLink).filter(link => link)\n);\n\n// Get incoming courses\nconst incomingCourses = $items(\"Filter Valid Courses1\");\n\n// Filter out courses that already exist in the sheet\nconst newCourses = incomingCourses.filter(course => {\n  const udemyLink = course.json.udemyLink;\n  return udemyLink && !existingLinks.has(udemyLink);\n});\n\nreturn newCourses;"
+        },
+        "id": "b8b812dc-f2de-4bcc-b76c-14d200819112",
+        "name": "Filter New Courses Only1",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          -464,
+          -432
+        ]
+      },
+      {
+        "parameters": {
+          "url": "={{ 'https://courselamy.site/wp-json/wp/v2/categories?search=' + encodeURIComponent(($json.category && (typeof $json.category === 'string' ? $json.category : $json.category._ || $json.category['#text'] || $json.category.text || '')) || '').toLowerCase() + '&per_page=100' }}",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "options": {
+            "response": {
+              "response": {
+                "neverError": true
+              }
+            }
+          }
+        },
+        "id": "068b4d5b-89a3-422a-9ad7-954526998e7b",
+        "name": "Check Category Exists",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          -256,
+          -432
+        ],
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "GJ1o59YzAiqhpAMR",
+            "name": "Unnamed credential"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "functionCode": "// Process category check results with exact matching - ENSURE ALL COURSES CONTINUE\nconst items = $input.all();\nconst courseItems = $items('Filter New Courses Only1');\n\n// Ensure we only process matching items\nconst minLength = Math.min(items.length, courseItems.length);\n\nreturn items.slice(0, minLength).map((item, index) => {\n  const courseData = courseItems[index].json;\n  const response = item.json;\n  \n  let categoryId = null;\n  \n  // Safely extract category name - handle both string and object types\n  let categoryName = '';\n  if (typeof courseData.category === 'string') {\n    categoryName = courseData.category;\n  } else if (courseData.category && typeof courseData.category === 'object') {\n    // If it's an object, try to get the text content\n    categoryName = courseData.category._ || courseData.category['#text'] || courseData.category.text || '';\n  }\n  \n  const searchCategory = categoryName.toLowerCase().trim();\n  \n  // Check if category already exists with exact name match\n  if (Array.isArray(response) && response.length > 0) {\n    // Find exact match (case insensitive)\n    const exactMatch = response.find(cat => {\n      const catName = (cat.name || '').toLowerCase().trim();\n      return catName === searchCategory && searchCategory !== '';\n    });\n    categoryId = exactMatch ? exactMatch.id : null;\n  } else if (response && response.id) {\n    categoryId = response.id;\n  }\n  \n  console.log('Category check for:', categoryName, '- Found ID:', categoryId, '- Exact match:', !!categoryId);\n  \n  return {\n    json: {\n      ...courseData,\n      category: categoryName, // Ensure category is always a string\n      existingCategoryId: categoryId,\n      needsCategoryCreation: Boolean(!categoryId && searchCategory),\n      ldCategoryId: categoryId || null,\n      categoryName: searchCategory\n    }\n  };\n});"
+        },
+        "id": "4ed0f552-c9fe-41a0-9a5a-e3b65ea7971e",
+        "name": "Process Category Check",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          -48,
+          -432
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 1
+            },
+            "conditions": [
+              {
+                "id": "1",
+                "leftValue": "={{ $json.needsCategoryCreation }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "07a8707a-ce67-49d3-a989-210ad47e63ae",
+        "name": "Filter Needs Category Creation",
+        "type": "n8n-nodes-base.filter",
+        "typeVersion": 2,
+        "position": [
+          -352,
+          176
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://courselamy.site/wp-json/wp/v2/categories",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "name",
+                "value": "={{ (($json.category && (typeof $json.category === 'string' ? $json.category : $json.category._ || $json.category['#text'] || $json.category.text || '')) || '').replace(/\\\\s*\\\\[100% OFF\\\\]\\\\s*/gi, '').trim() }}"
+              },
+              {
+                "name": "slug",
+                "value": "={{ (($json.category && (typeof $json.category === 'string' ? $json.category : $json.category._ || $json.category['#text'] || $json.category.text || '')) || '').replace(/\\\\s*\\\\[100% OFF\\\\]\\\\s*/gi, '').toLowerCase().trim().replace(/\\\\s+/g, '-') }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "76dc2f05-cad2-469c-80fc-41ca497ed6c2",
+        "name": "Create New Category",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          -144,
+          176
+        ],
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "GJ1o59YzAiqhpAMR",
+            "name": "Unnamed credential"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "functionCode": "// Extract new category ID and merge with original data - with error handling\nconst items = $input.all();\nconst courseItems = $items('Filter Needs Category Creation');\n\nreturn items.map((item, index) => {\n  const courseData = courseItems[index].json;\n  const response = item.json;\n  \n  // If creation failed with \"term exists\" error, try to fetch the existing category\n  if (response && response.code === 'term_exists') {\n    console.log('Category already exists, using existing ID:', response.data.term_id);\n    return {\n      json: {\n        ...courseData,\n        ldCategoryId: response.data.term_id,\n        categoryCreated: false, // wasn't created by us\n        categoryAlreadyExists: true\n      }\n    };\n  }\n  \n  if (response && response.id) {\n    return {\n      json: {\n        ...courseData,\n        ldCategoryId: response.id,\n        categoryCreated: true\n      }\n    };\n  }\n  \n  // If we get here, category creation failed for another reason\n  console.log('Category creation failed:', response);\n  return {\n    json: {\n      ...courseData,\n      categoryCreated: false,\n      creationError: response\n    }\n  };\n});"
+        },
+        "id": "569e660d-ef39-481f-9e24-79b50152aaff",
+        "name": "Extract Category ID",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          64,
+          176
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "combinationMode": "mergeByPosition",
+          "options": {}
+        },
+        "id": "4eb4de26-2c79-4a9b-ac67-37639f8ebbb1",
+        "name": "Merge Category Data",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 2,
+        "position": [
+          272,
+          16
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://courselamy.site/wp-json/ldlms/v1/sfwd-courses",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "title",
+                "value": "={{ $json.title.replace(/\\s*\\[\\s*100%\\s*OFF\\s*\\]\\s*/gi, '').trim() }}"
+              },
+              {
+                "name": "content",
+                "value": "={{ \n  (\n    $json.udemyImageUrl \n      ? '<div style=\"text-align: center; margin-bottom: 20px;\"><img src=\"' + $json.udemyImageUrl + '\" alt=\"Course Image\" style=\"max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);\"/></div>' \n      : ($json.enclosure || $json.image \n        ? '<div style=\"text-align: center; margin-bottom: 20px;\"><img src=\"' + ($json.enclosure?.url || $json.image) + '\" alt=\"Course Image\" style=\"max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);\"/></div>' \n        : '')\n  ) \n  + (\n    $json.description \n      ? $json.description\n          .replace(/<p><a rel=\"nofollow\" href=\"[^\"]+\">\\s*\\[100% OFF\\]\\s*[^<]+<\\/a><\\/p>\\s*/gi, \"\") \n          .replace(/https?:\\/\\/www\\.discudemy\\.com\\/[^\\s\"'<]+/gi, '') // REMOVE DISCUDEMY LINKS\n      : ''\n  ) \n  + '<br/><br/><div style=\"background-color: #f0f0f0; padding: 15px; border-radius: 5px; margin-top: 20px;\"><strong>🎓 Enrol for Course:</strong> <a href=\"' + ($json.udemyLink || '') + '\" target=\"_blank\" style=\"color: #0073aa; text-decoration: none; font-weight: bold;\">' + ($json.udemyLink || '') + '</a></div>'\n}}"
+              },
+              {
+                "name": "status",
+                "value": "publish"
+              },
+              {
+                "name": "categories",
+                "value": "={{ $json.ldCategoryId || '' }}"
+              },
+              {
+                "name": "meta",
+                "value": "={{ { course_image_url: $json.udemyImageUrl || $json.enclosure || $json.image || '', learndash_course_image: $json.udemyImageUrl || $json.enclosure || $json.image || '' } }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "name": "Create LearnDash Course1",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          480,
+          16
+        ],
+        "id": "b36b890a-f795-425c-a52f-fc367af30a04",
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "GJ1o59YzAiqhpAMR",
+            "name": "Unnamed credential"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "functionCode": "// Extract LearnDash course link from response - Process ALL items\nconst allResponses = $input.all();\nconst allOriginalData = $items(\"Merge Category Data\");\nconst results = [];\n\nfor (let i = 0; i < allResponses.length; i++) {\n  const response = allResponses[i].json;\n  const originalCourse = allOriginalData[i].json;\n  \n  if (response && response.id) {\n    const learnDashLink = `https://courselamy.site/courses/${response.slug || response.id}/`;\n    \n    results.push({\n      json: {\n        ...originalCourse,\n        learnDashLink: learnDashLink,\n        learnDashId: response.id,\n        learnDashSlug: response.slug\n      }\n    });\n  } else {\n    results.push({\n      json: {\n        ...originalCourse,\n        learnDashLink: null,\n        learnDashId: null\n      }\n    });\n  }\n}\n\nreturn results;"
+        },
+        "id": "bc279a31-b6e3-42e1-88f3-9de05f650d2d",
+        "name": "Extract LearnDash Link1",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          688,
+          16
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "appendOrUpdate",
+          "documentId": {
+            "__rl": true,
+            "value": "1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "https://docs.google.com/spreadsheets/d/1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0/edit?pli=1&gid=0#gid=0",
+            "mode": "url"
+          },
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {},
+            "matchingColumns": [
+              "udemyLink"
+            ],
+            "schema": [
+              {
+                "id": "title",
+                "displayName": "title",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "udemyLink",
+                "displayName": "udemyLink",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "category",
+                "displayName": "category",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "udemyImageUrl",
+                "displayName": "udemyImageUrl",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": false
+              },
+              {
+                "id": "learnDashLink",
+                "displayName": "learnDashLink",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": false
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "02fac454-3268-4efb-84ff-9eda92d28708",
+        "name": "Save to Google Sheets1",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4,
+        "position": [
+          896,
+          16
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "6A2XF4qDywhaZUBb",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "url": "={{ $json.udemyImageUrl }}",
+          "options": {}
+        },
+        "id": "63def14e-5ce4-4613-9e98-bf2b1b56fe17",
+        "name": "Download Udemy Image",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1040,
+          16
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "sendPhoto",
+          "chatId": "@free_courses247",
+          "binaryData": true,
+          "additionalFields": {
+            "caption": "={{ `🎓 ${$json.title.replace(/\\s*\\[\\s*100%\\s*OFF\\s*\\]\\s*/gi, '').trim().replace(/([_*[\\]()~`>#+\\-=|{}.!])/g, '\\\\$1')}\\n\\n FREE For Limited Enrolls \\n\\n🔗 ${($json.learnDashLink || '').replace(/([_*[\\]()~`>#+\\-=|{}.!])/g, '\\\\$1')}` }}",
+            "parse_mode": "MarkdownV2"
+          }
+        },
+        "id": "809172aa-72e5-46f1-ba68-9c24f932d726",
+        "name": "Send to Telegram Channel1",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1,
+        "position": [
+          1248,
+          16
+        ],
+        "webhookId": "5007e668-fa2e-4837-b6a6-ccd241e9203a",
+        "credentials": {
+          "telegramApi": {
+            "id": "nn2SIXAArnS33U97",
+            "name": "Telegram account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Schedule Trigger1": {
+        "main": [
+          [
+            {
+              "node": "Fetch RSS1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch RSS1": {
+        "main": [
+          [
+            {
+              "node": "XML → JSON1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "XML → JSON1": {
+        "main": [
+          [
+            {
+              "node": "Filter Seen Courses",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter Seen Courses": {
+        "main": [
+          [
+            {
+              "node": "Build Go Link",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Go Link": {
+        "main": [
+          [
+            {
+              "node": "Merge Course + Udemy1",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Fetch Go Page",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Go Page": {
+        "main": [
+          [
+            {
+              "node": "Extract Udemy Link",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract Udemy Link": {
+        "main": [
+          [
+            {
+              "node": "Merge Course + Udemy1",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge Course + Udemy1": {
+        "main": [
+          [
+            {
+              "node": "Fetch Discudemy Course Page",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Discudemy Course Page": {
+        "main": [
+          [
+            {
+              "node": "Extract Udemy Image URL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract Udemy Image URL": {
+        "main": [
+          [
+            {
+              "node": "Filter Valid Courses1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter Valid Courses1": {
+        "main": [
+          [
+            {
+              "node": "Read Existing Courses1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read Existing Courses1": {
+        "main": [
+          [
+            {
+              "node": "Filter New Courses Only1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter New Courses Only1": {
+        "main": [
+          [
+            {
+              "node": "Check Category Exists",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Category Exists": {
+        "main": [
+          [
+            {
+              "node": "Process Category Check",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Process Category Check": {
+        "main": [
+          [
+            {
+              "node": "Merge Category Data",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Filter Needs Category Creation",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter Needs Category Creation": {
+        "main": [
+          [
+            {
+              "node": "Create New Category",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create New Category": {
+        "main": [
+          [
+            {
+              "node": "Extract Category ID",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract Category ID": {
+        "main": [
+          [
+            {
+              "node": "Merge Category Data",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge Category Data": {
+        "main": [
+          [
+            {
+              "node": "Create LearnDash Course1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create LearnDash Course1": {
+        "main": [
+          [
+            {
+              "node": "Extract LearnDash Link1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract LearnDash Link1": {
+        "main": [
+          [
+            {
+              "node": "Save to Google Sheets1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save to Google Sheets1": {
+        "main": [
+          [
+            {
+              "node": "Download Udemy Image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download Udemy Image": {
+        "main": [
+          [
+            {
+              "node": "Send to Telegram Channel1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "callerPolicy": "workflowsFromSameOwner",
+      "errorWorkflow": "SupOl9rOlZ62N5lV",
+      "timezone": "Africa/Lagos"
+    },
+    "staticData": {
+      "global": {
+        "courses": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    },
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "pinData": {},
+    "versionId": "e37e936a-1ad2-4957-ab2e-8627ac598d32",
+    "triggerCount": 1,
+    "shared": [
+      {
+        "createdAt": "2025-09-28T06:30:09.751Z",
+        "updatedAt": "2025-09-28T06:30:09.751Z",
+        "role": "workflow:owner",
+        "workflowId": "6JDvZ3pYJE936ZqX",
+        "projectId": "X54hljIRMdcuCgG9"
+      }
+    ],
+    "tags": []
+  },
+  {
+    "createdAt": "2025-09-27T14:11:35.426Z",
+    "updatedAt": "2025-10-09T08:02:40.000Z",
+    "id": "9sX0aWA8kXpCOxgK",
+    "name": "telegram",
+    "active": false,
+    "isArchived": true,
+    "nodes": [],
+    "connections": {},
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": {},
+    "versionId": "504d9def-0771-4ca1-bae3-61cade8945a5",
+    "triggerCount": 0,
+    "shared": [
+      {
+        "createdAt": "2025-09-27T14:11:35.475Z",
+        "updatedAt": "2025-09-27T14:11:35.475Z",
+        "role": "workflow:owner",
+        "workflowId": "9sX0aWA8kXpCOxgK",
+        "projectId": "X54hljIRMdcuCgG9"
+      }
+    ],
+    "tags": []
+  },
+  {
+    "createdAt": "2025-11-17T20:09:09.054Z",
+    "updatedAt": "2025-11-17T21:38:56.000Z",
+    "id": "Ds9wwXq6bSEfxV06",
+    "name": "Backup-Github",
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 2 * * *"
+              }
+            ]
+          }
+        },
+        "id": "b7d4a47f-3f6e-4b3f-81a9-20f2b3ad57a4",
+        "name": "Schedule Trigger1",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          -304,
+          512
+        ]
+      },
+      {
+        "parameters": {
+          "url": "=https://drum-fleet-kite.ngrok-free.app/api/v1/workflows",
+          "authentication": "predefinedCredentialType",
+          "options": {}
+        },
+        "id": "ceb9b0e7-9071-4376-876c-b6778096a1ca",
+        "name": "Get All Workflows1",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -80,
+          512
+        ],
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "7g4DZJe6jhULtgT0",
+            "name": "WordPress JWT"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "a1",
+                "name": "workflowsJson",
+                "value": "={{ JSON.stringify($json.data, null, 2) }}",
+                "type": "string"
+              },
+              {
+                "id": "a2",
+                "name": "timestamp",
+                "value": "={{ $now.toISO() }}",
+                "type": "string"
+              },
+              {
+                "id": "a3",
+                "name": "filename",
+                "value": "={{ 'workflows-backup-' + $now.format('yyyy-MM-dd') + '.json' }}",
+                "type": "string"
+              },
+              {
+                "id": "a4",
+                "name": "workflowCount",
+                "value": "={{ $json.data.length }}",
+                "type": "number"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "3d0a958f-7f0d-4c89-934c-9bd9426bcc79",
+        "name": "Prepare Backup Data1",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.3,
+        "position": [
+          144,
+          512
+        ]
+      },
+      {
+        "parameters": {
+          "resource": "file",
+          "owner": {
+            "__rl": true,
+            "value": "Silvaolamide",
+            "mode": "name"
+          },
+          "repository": {
+            "__rl": true,
+            "value": "n8n-workflows-backup",
+            "mode": "name",
+            "cachedResultName": "n8n-workflows-backup"
+          },
+          "filePath": "={{ 'backups/' + $json.filename }}",
+          "fileContent": "={{ $json.workflowsJson }}",
+          "commitMessage": "=Automated backup - {{ $json.timestamp }}"
+        },
+        "id": "be4454d4-ba59-49a8-8f9b-0d7d0031a45a",
+        "name": "Commit to GitHub1",
+        "type": "n8n-nodes-base.github",
+        "typeVersion": 1.1,
+        "position": [
+          368,
+          512
+        ],
+        "webhookId": "168c5751-1129-437f-8b82-0571554699f5",
+        "credentials": {
+          "githubApi": {
+            "id": "UPdIohV1bl8fDXlH",
+            "name": "GitHub account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "fromEmail": "silvaolamide@gmail.com",
+          "toEmail": "silvaolamide@gmail.com",
+          "subject": "✅ n8n Workflow Backup Successful",
+          "options": {}
+        },
+        "id": "f4125c0e-ad27-4266-9eed-68eda31bac1b",
+        "name": "Send Success Email1",
+        "type": "n8n-nodes-base.emailSend",
+        "typeVersion": 2.1,
+        "position": [
+          576,
+          512
+        ],
+        "webhookId": "2b865a47-65ac-467b-9d59-58da9d4eb162",
+        "credentials": {
+          "smtp": {
+            "id": "RtmyZar0xKQayG09",
+            "name": "SMTP account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Schedule Trigger1": {
+        "main": [
+          [
+            {
+              "node": "Get All Workflows1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get All Workflows1": {
+        "main": [
+          [
+            {
+              "node": "Prepare Backup Data1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Backup Data1": {
+        "main": [
+          [
+            {
+              "node": "Commit to GitHub1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Commit to GitHub1": {
+        "main": [
+          [
+            {
+              "node": "Send Success Email1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "pinData": {},
+    "versionId": "1cb5ce11-103e-4fcf-8551-fdfcc2ebd249",
+    "triggerCount": 0,
+    "shared": [
+      {
+        "createdAt": "2025-11-17T20:09:09.086Z",
+        "updatedAt": "2025-11-17T20:09:09.086Z",
+        "role": "workflow:owner",
+        "workflowId": "Ds9wwXq6bSEfxV06",
+        "projectId": "X54hljIRMdcuCgG9"
+      }
+    ],
+    "tags": []
+  },
+  {
+    "createdAt": "2025-08-21T03:43:19.048Z",
+    "updatedAt": "2025-10-11T06:37:04.000Z",
+    "id": "OS1uzjjqwkm8WaCk",
+    "name": "Minta",
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "minutes",
+                "minutesInterval": 15
+              }
+            ]
+          }
+        },
+        "id": "735bd6b5-594c-4dda-9c6e-450e090f3db9",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1,
+        "position": [
+          -2960,
+          -304
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Token list from your strategy\nconst tokens = [\n  \"ALPINEUSDT\"\n];\n\n// For each token, create a proper prompt for the AI agent\nconst items = tokens.map(symbol => ({\n  json: { \n    chatInput: `Analyze trading patterns for ${symbol}. The most important thing about your analysis is to find candle and price patterns that result in a predictable price movement. Detect these specific patterns:\n\n**PRIORITY PATTERNS TO DETECT:**\n\n1. LARGE CANDLE PATTERN\n   - Detect when current candle body is 2x or more the average body size of last 20 candles\n   - Indicate direction (bullish/bearish)\n   - Check if this occurs at support/resistance levels\n\n2. THREE CONSECUTIVE SMALL CANDLES (Same Direction)\n   - Find 3 consecutive candles with bodies < 0.5x average\n   - All moving in same direction (all green or all red)\n   - This indicates continuation potential\n\n3. REVERSAL SETUP PATTERN\n   - Find: 3 small consecutive candles THEN a reversal candle\n   - Reversal candle must:\n     * NOT be the current/most recent candle\n     * Have very small or NO wick in reversal direction (< 10% of body)\n     * Body size > 1.5x average\n   - High probability reversal signal\n4. LOWER HIGHS AND HIGHER LOWS\n  - Analyze the last 20 candles for recurring sequences\n  - Confirm with pattern detection on several timelines\n5. RECURRING PATTERN DISCOVERY\n   - Analyze last 100 candles for recurring sequences\n   - Look for patterns that preceded significant moves (>2% in next 5 candles)\n   - Document any pattern that occurs 3+ times with similar outcomes\n\n**ANALYSIS REQUIREMENTS:**\n- Calculate average candle body size (last 20 candles)\n- Check patterns across all timeframes (1m, 15m, 1h)\n- Provide confidence based on multi-timeframe confirmation\n- Include exact candle measurements and ratios\n\n**OUTPUT FORMAT:**\nProvide:\n- Pattern(s) detected (with specific measurements)\n- BUY/SELL/HOLD recommendation\n- Confidence level (0-100%)\n- Entry price, Stop Loss, Take Profit levels\n- Risk/Reward ratio\n\nSymbol: ${symbol}\nAnalysis Time: ${new Date().toISOString()}`,\n    symbol: symbol,\n    timestamp: new Date().toISOString(),\n    batchId: Date.now().toString()\n  }\n}));\n\nreturn items;"
+        },
+        "id": "a895b0a6-7774-42a8-a4f2-ba7f33c697f8",
+        "name": "Generate Trading Analysis Prompts",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -2592,
+          -304
+        ]
+      },
+      {
+        "parameters": {
+          "options": {
+            "systemMessage": "=<role>\nYou are an Expert Quantitative Trading Pattern Detection AI specializing in candlestick pattern recognition and algorithmic trading signals.\n</role>\n\n<instructions>\n<goal>\nDetect specific candlestick patterns with mathematical precision and provide actionable trading signals based on pattern confirmation across multiple timeframes.\n</goal>\n\n<pattern_detection_algorithms>\n\n### 1. LARGE CANDLE DETECTION\n```\nAlgorithm:\n1. Calculate body_size = |close - open| for each candle\n2. Calculate avg_body = average(last 20 bodies)\n3. IF current_body >= 2.0 * avg_body:\n   - PATTERN FOUND: \"Large Candle\"\n   - Direction: \"Bullish\" if close > open, else \"Bearish\"\n   - Strength: current_body / avg_body ratio\n```\n\n### 2. THREE SMALL CONSECUTIVE CANDLES\n```\nAlgorithm:\n1. Get last 3 completed candles (NOT current)\n2. Calculate avg_body (last 20 candles)\n3. FOR each of 3 candles:\n   - body_size < 0.5 * avg_body (small body)\n4. Check all 3 same direction:\n   - All green (close > open) OR all red (close < open)\n5. IF conditions met:\n   - PATTERN FOUND: \"3 Small Consecutive\"\n   - Direction indicates continuation\n```\n\n### 3. REVERSAL SETUP PATTERN\n```\nAlgorithm:\n1. Identify: candles[n-3], [n-2], [n-1], [n]\n2. Check candles[n-3] to [n-1]: 3 small same direction\n3. Check candle[n] (NOT current candle [0]):\n   - Opposite direction to previous 3\n   - body_size > 1.5 * avg_body\n   - Wick in reversal direction < 10% of body\n     (if bullish reversal: lower_wick < 0.1 * body)\n     (if bearish reversal: upper_wick < 0.1 * body)\n4. IF all conditions met:\n   - PATTERN FOUND: \"Reversal Setup\"\n   - High confidence reversal signal\n```\n\n### 4. PATTERN DISCOVERY ENGINE\n```\nAlgorithm:\n1. Scan last 100 candles for any sequence\n2. For each sequence of 3-5 candles:\n   - Record pattern signature\n   - Measure price movement in next 5 candles\n3. Track patterns that preceded moves > 2%\n4. IF pattern occurs 3+ times with similar outcome:\n   - PATTERN FOUND: \"Recurring Pattern X\"\n   - Document pattern and success rate\n```\n\n</pattern_detection_algorithms>\n\n<analysis_framework>\n\n### Data Processing\n1. Fetch kline data from all 3 tools (1m, 15m, 1h)\n2. Parse each candle: [timestamp, open, high, low, close, volume, ...]\n3. Calculate metrics:\n   - Body size = |close - open|\n   - Upper wick = high - max(open, close)\n   - Lower wick = min(open, close) - low\n   - Average body (rolling 20 periods)\n\n### Multi-Timeframe Confirmation\n- Pattern on 1m + 15m = Moderate confidence\n- Pattern on 15m + 1h = High confidence  \n- Pattern on all 3 timeframes = Very high confidence\n\n### Risk Management Calculations\n- Stop Loss: Below/above recent swing low/high\n- Take Profit: 2:1 or 3:1 Risk/Reward ratio\n- Position Size: Based on confidence level\n\n</analysis_framework>\n\n<output_format>\n**🎯 PATTERN ANALYSIS: {{ $json.symbol }}**\n\n**📊 PATTERNS DETECTED:**\n[List each pattern found with exact measurements]\nExample:\n- Large Candle: Body 2.3x average, Bullish, on 15m timeframe\n- 3 Small Consecutive: Detected at candles 45-47, Bearish direction\n\n**🔔 TRADING SIGNAL:** [BUY / SELL / HOLD]\n\n**💯 CONFIDENCE LEVEL:** [X]%\nBased on: [multi-timeframe confirmation details]\n\n**📍 KEY LEVELS:**\n- Entry: $[price]\n- Stop Loss: $[price] ([X]% risk)\n- Take Profit 1: $[price] ([X]% gain)\n- Take Profit 2: $[price] ([X]% gain)\n- Risk/Reward: [ratio]\n\n**⚠️ RISK ASSESSMENT:**\n[Brief risk analysis]\n\n**⏰ Analysis Time:** {{ $now }}\n\n---\n⚠️ **DISCLAIMER:** Trading involves substantial risk. This is algorithmic analysis, not financial advice.\n</output_format>\n\n</instructions>\n\n<critical_rules>\n- ALWAYS analyze ALL timeframes before concluding\n- NEVER recommend trades based on incomplete data\n- ALWAYS calculate exact measurements (ratios, percentages)\n- ALWAYS exclude current candle from reversal pattern detection\n- PROVIDE specific entry/exit levels, never vague suggestions\n- ALWAYS include a numeric confidence value between 0-100 in your response\n- FORMAT confidence as \"CONFIDENCE LEVEL: XX%\" or \"Confidence: XX%\"\n</critical_rules>"
+          }
+        },
+        "id": "462f06cd-409d-4b68-8173-b80bb20746c6",
+        "name": "Trading Pattern Analyzer AI",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "position": [
+          -2144,
+          -304
+        ],
+        "typeVersion": 2.2
+      },
+      {
+        "parameters": {
+          "options": {
+            "temperature": 0.1
+          }
+        },
+        "id": "12f187bc-908d-4821-a6b4-eecbb53d85a9",
+        "name": "Connect Gemini",
+        "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+        "position": [
+          -2496,
+          144
+        ],
+        "typeVersion": 1,
+        "notesInFlow": false,
+        "credentials": {
+          "googlePalmApi": {
+            "id": "uHer33oRvwLCaoHw",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "url": "=https://fapi.binance.com/fapi/v1/klines?symbol={{ $json.symbol }}&interval=1m&limit=100",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequestTool",
+        "typeVersion": 4.2,
+        "position": [
+          -2192,
+          176
+        ],
+        "id": "d4183aaa-5d74-4473-9dc0-7c1a03ab258b",
+        "name": "Get 1min Price Data"
+      },
+      {
+        "parameters": {
+          "url": "=https://fapi.binance.com/fapi/v1/klines?symbol={{ $json.symbol }}&interval=15m&limit=100",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequestTool",
+        "typeVersion": 4.2,
+        "position": [
+          -2000,
+          176
+        ],
+        "id": "24837487-7545-46e4-8279-e5ae1df1d689",
+        "name": "Get 15min Price Data"
+      },
+      {
+        "parameters": {
+          "url": "=https://fapi.binance.com/fapi/v1/klines?symbol={{ $json.symbol }}&interval=1h&limit=100",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequestTool",
+        "typeVersion": 4.2,
+        "position": [
+          -1808,
+          176
+        ],
+        "id": "eeb4a305-7105-42a2-a589-f30a225bb08f",
+        "name": "Get 1hr Price Data"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Extract confidence level from AI response and filter\nconst items = $input.all();\nconst filtered = [];\n\nfor (const item of items) {\n  const output = item.json.output || '';\n  const symbol = item.json.symbol || 'UNKNOWN';\n  \n  // Try to extract confidence level from various formats\n  let confidence = 0;\n  \n  // Match patterns like \"Confidence: 85%\" or \"CONFIDENCE LEVEL: 85%\"\n  const confMatch = output.match(/confidence[:\\s]+([0-9]+)%/i);\n  if (confMatch) {\n    confidence = parseInt(confMatch[1]);\n  }\n  \n  // Extract trading signal\n  let signal = 'HOLD';\n  if (output.match(/TRADING SIGNAL[:\\s]+BUY/i) || output.match(/Signal[:\\s]+BUY/i)) {\n    signal = 'BUY';\n  } else if (output.match(/TRADING SIGNAL[:\\s]+SELL/i) || output.match(/Signal[:\\s]+SELL/i)) {\n    signal = 'SELL';\n  }\n  \n  // Filter: Only keep BUY/SELL signals with confidence >= 70%\n  if ((signal === 'BUY' || signal === 'SELL') && confidence >= 70) {\n    filtered.push({\n      json: {\n        symbol: symbol,\n        signal: signal,\n        confidence: confidence,\n        analysis: output,\n        timestamp: item.json.timestamp || new Date().toISOString(),\n        alertMessage: `🚨 HIGH CONFIDENCE SIGNAL 🚨\\n\\n` +\n                     `Symbol: ${symbol}\\n` +\n                     `Signal: ${signal}\\n` +\n                     `Confidence: ${confidence}%\\n\\n` +\n                     `${output.substring(0, 800)}${output.length > 800 ? '...' : ''}`\n      }\n    });\n  }\n}\n\nreturn filtered;"
+        },
+        "id": "be50354a-440c-43f1-954a-48569f609581",
+        "name": "Filter High Confidence Signals",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1664,
+          -304
+        ]
+      },
+      {
+        "parameters": {
+          "chatId": "=@traders_19",
+          "text": "={{ $json.alertMessage }}",
+          "additionalFields": {
+            "disable_web_page_preview": true,
+            "parse_mode": "HTML"
+          }
+        },
+        "id": "c4e75202-305e-45bb-9e8f-e60e174ba687",
+        "name": "Send Telegram Alert",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -1232,
+          -320
+        ],
+        "webhookId": "970bfe00-981e-47b0-a820-129140b597a9",
+        "credentials": {
+          "telegramApi": {
+            "id": "StNGwGdy7t9NTE3a",
+            "name": "Minta_Telegram"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": false
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.signal }}",
+                "rightValue": "HOLD",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEquals"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "506d4fc8-5c66-4d4a-bdff-10113f8fabf2",
+        "name": "Check if Actionable Signal",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          -1488,
+          -304
+        ]
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Generate Trading Analysis Prompts",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Trading Analysis Prompts": {
+        "main": [
+          [
+            {
+              "node": "Trading Pattern Analyzer AI",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Trading Pattern Analyzer AI": {
+        "main": [
+          [
+            {
+              "node": "Filter High Confidence Signals",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter High Confidence Signals": {
+        "main": [
+          [
+            {
+              "node": "Check if Actionable Signal",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check if Actionable Signal": {
+        "main": [
+          [
+            {
+              "node": "Send Telegram Alert",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Connect Gemini": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Trading Pattern Analyzer AI",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get 1min Price Data": {
+        "ai_tool": [
+          [
+            {
+              "node": "Trading Pattern Analyzer AI",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get 15min Price Data": {
+        "ai_tool": [
+          [
+            {
+              "node": "Trading Pattern Analyzer AI",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get 1hr Price Data": {
+        "ai_tool": [
+          [
+            {
+              "node": "Trading Pattern Analyzer AI",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "callerPolicy": "workflowsFromSameOwner",
+      "errorWorkflow": "SupOl9rOlZ62N5lV"
+    },
+    "staticData": {
+      "node:Schedule Trigger": {
+        "recurrenceRules": []
+      }
+    },
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "pinData": {},
+    "versionId": "7bee20c0-9812-4939-ada7-ee5ed8fbc1c8",
+    "triggerCount": 1,
+    "shared": [
+      {
+        "createdAt": "2025-08-21T03:43:19.066Z",
+        "updatedAt": "2025-08-21T03:43:19.066Z",
+        "role": "workflow:owner",
+        "workflowId": "OS1uzjjqwkm8WaCk",
+        "projectId": "X54hljIRMdcuCgG9"
+      }
+    ],
+    "tags": [
+      {
+        "createdAt": "2025-08-23T22:43:38.492Z",
+        "updatedAt": "2025-08-23T22:43:38.492Z",
+        "id": "fOqY3qvMrxFZ1H7o",
+        "name": "Trading Strategy"
+      }
+    ]
+  },
+  {
+    "createdAt": "2025-08-23T22:46:32.047Z",
+    "updatedAt": "2025-10-09T08:02:18.000Z",
+    "id": "SupOl9rOlZ62N5lV",
+    "name": "My workflow",
+    "active": false,
+    "isArchived": true,
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {}
+            ]
+          }
+        },
+        "id": "99b39756-d07b-4570-b98d-4ac7e9c6c794",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -1008,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "// Configuration - Modify these parameters as needed\nconst CONFIG = {\n  symbols: ['MERLUSDT', 'ZKJUSDT', 'BUSDT', 'KERNELUSDT', 'RESOLVUSDT', 'HYPERUSDT', 'MILKUSDT', 'OBOLUSDT', 'UNIUSDT', 'DEEPUSDT', 'ALPINEUSDT', 'WALUSDT', 'FORTHUSDT', 'SKATEUSDT', 'PROMPTUSDT', 'GUNUSDT', 'BABYUSDT', 'STOUSDT', 'FISUSDT', 'ASRUSDT', 'MLNUSDT', 'TANSSIUSDT', 'AIOTUSDT', 'SKYAIUSDT'],\n  percentageThreshold: 5,\n  candleCount: 10,\n  retraceCount: 5,\n  bollingerPeriod: 20,\n  bollingerStdDev: 2,\n  proximityThreshold: 0.02,\n  interval: '15m'\n};\n\nreturn [\n  {\n    json: {\n      config: CONFIG,\n      timestamp: new Date().toISOString()\n    }\n  }\n];"
+        },
+        "id": "a4ccd36d-23fa-4dc9-ab46-f205a9d858fe",
+        "name": "Strategy Configuration",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          -784,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "const config = items[0].json.config;\nconst outputs = [];\n\nconfig.symbols.forEach((symbol, index) => {\n  outputs.push({\n    json: {\n      symbol: symbol,\n      config: config,\n      symbolIndex: index\n    }\n  });\n});\n\nreturn outputs;"
+        },
+        "id": "26b6409f-43e1-421f-9b82-41aa1e41586e",
+        "name": "Split Symbols",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          -560,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "url": "=https://fapi.binance.com/fapi/v1/klines",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {}
+            ]
+          },
+          "options": {}
+        },
+        "id": "3ae45f6d-a276-4cff-9b59-5faa022c218e",
+        "name": "Fetch Binance Klines",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.1,
+        "position": [
+          -336,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "const symbol = items[0].json.symbol;\nconst config = items[0].json.config;\nconst klines = items[0].json;\n\nif (!Array.isArray(klines) || klines.length === 0) {\n  return [{\n    json: {\n      symbol: symbol,\n      error: 'No klines data available',\n      timestamp: new Date().toISOString()\n    }\n  }];\n}\n\nconst candles = klines.map(k => ({\n  time: k[0],\n  open: parseFloat(k[1]),\n  high: parseFloat(k[2]),\n  low: parseFloat(k[3]),\n  close: parseFloat(k[4]),\n  volume: parseFloat(k[5])\n})).reverse();\n\nfunction calculateBollingerBands(closes, period = 20, stdDev = 2) {\n  if (closes.length < period) return null;\n  \n  const relevantCloses = closes.slice(-period);\n  const mean = relevantCloses.reduce((sum, close) => sum + close, 0) / period;\n  \n  const variance = relevantCloses.reduce((sum, close) => sum + Math.pow(close - mean, 2), 0) / period;\n  const standardDeviation = Math.sqrt(variance);\n  \n  return {\n    upper: mean + (standardDeviation * stdDev),\n    middle: mean,\n    lower: mean - (standardDeviation * stdDev)\n  };\n}\n\nconst candlesWithBB = candles.map((candle, index) => {\n  const closes = candles.slice(0, index + 1).map(c => c.close);\n  const bb = calculateBollingerBands(closes, config.bollingerPeriod, config.bollingerStdDev);\n  \n  return {\n    ...candle,\n    bb: bb,\n    isGreen: candle.close > candle.open,\n    isRed: candle.close < candle.open,\n    percentChange: ((candle.close - candle.open) / candle.open) * 100\n  };\n}).filter(c => c.bb !== null);\n\nif (candlesWithBB.length < config.candleCount + config.retraceCount) {\n  return [{\n    json: {\n      symbol: symbol,\n      error: 'Insufficient data for analysis',\n      timestamp: new Date().toISOString()\n    }\n  }];\n}\n\nconst recentCandles = candlesWithBB.slice(0, config.candleCount + config.retraceCount);\nconst initialCandles = recentCandles.slice(config.retraceCount);\nconst retraceCandles = recentCandles.slice(0, config.retraceCount);\nconst currentCandle = candlesWithBB[0];\n\nlet strongUpMove = false;\nlet strongDownMove = false;\nlet initialDirection = null;\n\nconst initialStart = initialCandles[initialCandles.length - 1].close;\nconst initialEnd = initialCandles[0].close;\nconst totalMovement = ((initialEnd - initialStart) / initialStart) * 100;\n\nif (Math.abs(totalMovement) >= config.percentageThreshold) {\n  if (totalMovement > 0) {\n    strongUpMove = true;\n    initialDirection = 'up';\n  } else {\n    strongDownMove = true;\n    initialDirection = 'down';\n  }\n}\n\nlet hasRetraced = false;\nlet retraceDirection = null;\n\nif (strongUpMove || strongDownMove) {\n  const retraceStart = retraceCandles[retraceCandles.length - 1].close;\n  const retraceEnd = retraceCandles[0].close;\n  const retraceMovement = ((retraceEnd - retraceStart) / retraceStart) * 100;\n  \n  if (strongUpMove && retraceMovement < -2) {\n    hasRetraced = true;\n    retraceDirection = 'down';\n  } else if (strongDownMove && retraceMovement > 2) {\n    hasRetraced = true;\n    retraceDirection = 'up';\n  }\n}\n\nconst currentPrice = currentCandle.close;\nconst currentMiddleBB = currentCandle.bb.middle;\nconst distanceFromMiddleBB = Math.abs(currentPrice - currentMiddleBB) / currentMiddleBB;\nconst nearMiddleBB = distanceFromMiddleBB <= config.proximityThreshold;\n\nlet signal = null;\nlet signalStrength = 0;\n\nif ((strongUpMove || strongDownMove) && hasRetraced && nearMiddleBB) {\n  if (strongUpMove) {\n    signal = 'BUY';\n    signalStrength = Math.abs(totalMovement) * (1 - distanceFromMiddleBB);\n  } else {\n    signal = 'SELL';\n    signalStrength = Math.abs(totalMovement) * (1 - distanceFromMiddleBB);\n  }\n}\n\nreturn [{\n  json: {\n    symbol: symbol,\n    signal: signal,\n    signalStrength: signalStrength,\n    analysis: {\n      initialDirection: initialDirection,\n      totalMovement: totalMovement.toFixed(2),\n      hasRetraced: hasRetraced,\n      retraceDirection: retraceDirection,\n      nearMiddleBB: nearMiddleBB,\n      distanceFromMiddleBB: (distanceFromMiddleBB * 100).toFixed(2),\n      currentPrice: currentPrice,\n      middleBB: currentMiddleBB.toFixed(4),\n      upperBB: currentCandle.bb.upper.toFixed(4),\n      lowerBB: currentCandle.bb.lower.toFixed(4)\n    },\n    candleData: {\n      totalCandles: candlesWithBB.length,\n      initialCandles: initialCandles.length,\n      retraceCandles: retraceCandles.length\n    },\n    timestamp: new Date().toISOString(),\n    config: config\n  }\n}];"
+        },
+        "id": "331e8c9b-de7e-4dd4-b346-9c9a449029a1",
+        "name": "Analyze Bollinger Strategy",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          -128,
+          48
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{ $json.signal }}",
+                "operation": "isNotEmpty"
+              }
+            ]
+          }
+        },
+        "id": "d3c07013-15d3-4f8a-9f59-3b27e89addc8",
+        "name": "Filter Valid Signals",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 1,
+        "position": [
+          80,
+          -160
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "const data = items[0].json;\n\nconst message = `🚨 BOLLINGER RETRACEMENT SIGNAL 🚨\\n\\n` +\n  `Symbol: ${data.symbol}\\n` +\n  `Signal: ${data.signal}\\n` +\n  `Signal Strength: ${data.signalStrength.toFixed(2)}\\n\\n` +\n  `Analysis:\\n` +\n  `• Initial Movement: ${data.analysis.totalMovement}% ${data.analysis.initialDirection}\\n` +\n  `• Has Retraced: ${data.analysis.hasRetraced} (${data.analysis.retraceDirection})\\n` +\n  `• Near Middle BB: ${data.analysis.nearMiddleBB}\\n` +\n  `• Distance from Middle BB: ${data.analysis.distanceFromMiddleBB}%\\n\\n` +\n  `Current Prices:\\n` +\n  `• Current Price: $${data.analysis.currentPrice}\\n` +\n  `• Upper BB: $${data.analysis.upperBB}\\n` +\n  `• Middle BB: $${data.analysis.middleBB}\\n` +\n  `• Lower BB: $${data.analysis.lowerBB}\\n\\n` +\n  `Strategy: Price expected to continue ${data.analysis.initialDirection}ward after BB retracement\\n` +\n  `Time: ${data.timestamp}`;\n\nreturn [\n  {\n    json: {\n      message: message,\n      symbol: data.symbol,\n      signal: data.signal,\n      signalStrength: data.signalStrength,\n      analysis: data.analysis,\n      timestamp: data.timestamp\n    }\n  }\n];"
+        },
+        "id": "8c399623-b105-4548-8762-e3670991db75",
+        "name": "Format Notification",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          320,
+          -32
+        ]
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+          "text": "={{ $json.message }}",
+          "additionalFields": {
+            "parse_mode": "Markdown"
+          }
+        },
+        "id": "6cef7380-81b1-4a04-a1d5-5e49f2fad038",
+        "name": "Send Telegram Alert",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.1,
+        "position": [
+          544,
+          -32
+        ],
+        "webhookId": "f230b340-f4ad-4c64-8ba7-f42c55894a45"
+      },
+      {
+        "parameters": {
+          "functionCode": "const data = items[0].json;\n\nconst logEntry = {\n  timestamp: data.timestamp,\n  symbol: data.symbol,\n  signal: data.signal,\n  signalStrength: data.signalStrength,\n  analysis: data.analysis,\n  action: 'signal_generated'\n};\n\nconsole.log('BOLLINGER STRATEGY LOG:', JSON.stringify(logEntry, null, 2));\n\nreturn [\n  {\n    json: logEntry\n  }\n];"
+        },
+        "id": "6c460432-e5a9-48b2-8fb1-1dffaa349bfe",
+        "name": "Log Analysis Results",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          320,
+          256
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "const data = items[0].json;\n\nif (!data.signal) {\n  console.log(`${data.symbol}: No signal - Initial: ${data.analysis.initialDirection} ${data.analysis.totalMovement}%, Retraced: ${data.analysis.hasRetraced}, Near BB: ${data.analysis.nearMiddleBB}`);\n}\n\nreturn items;"
+        },
+        "id": "994a0794-006d-4302-8e49-43cf3e39ff37",
+        "name": "Debug Output",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          -48,
+          288
+        ]
+      }
+    ],
+    "connections": {},
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "staticData": null,
+    "meta": null,
+    "pinData": {},
+    "versionId": "921bff53-e2c8-4a4b-9212-5d0976d25089",
+    "triggerCount": 0,
+    "shared": [
+      {
+        "createdAt": "2025-08-23T22:46:32.058Z",
+        "updatedAt": "2025-08-23T22:46:32.058Z",
+        "role": "workflow:owner",
+        "workflowId": "SupOl9rOlZ62N5lV",
+        "projectId": "X54hljIRMdcuCgG9"
+      }
+    ],
+    "tags": [
+      {
+        "createdAt": "2025-08-23T22:43:38.492Z",
+        "updatedAt": "2025-08-23T22:43:38.492Z",
+        "id": "fOqY3qvMrxFZ1H7o",
+        "name": "Trading Strategy"
+      }
+    ]
+  },
+  {
+    "createdAt": "2025-08-21T04:33:18.329Z",
+    "updatedAt": "2025-10-09T08:02:22.000Z",
+    "id": "bdrExoo4slDJcQ9o",
+    "name": "TaiwoBlog",
+    "active": false,
+    "isArchived": true,
+    "nodes": [
+      {
+        "parameters": {
+          "operation": "appendOrUpdate",
+          "documentId": {
+            "__rl": true,
+            "value": "1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "https://docs.google.com/spreadsheets/d/1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0/edit?pli=1&gid=0#gid=0",
+            "mode": "url"
+          },
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {},
+            "matchingColumns": [
+              "title"
+            ],
+            "schema": [
+              {
+                "id": "title",
+                "displayName": "title",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "description",
+                "displayName": "description",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "link",
+                "displayName": "link",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "pubDate",
+                "displayName": "pubDate",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "category",
+                "displayName": "category",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "guid",
+                "displayName": "guid",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "enclosure",
+                "displayName": "enclosure",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "goLink",
+                "displayName": "goLink",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "f4410056-38f9-4495-846e-015b43a1db51",
+        "name": "Save to Google Sheets",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4,
+        "position": [
+          3264,
+          1312
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "6A2XF4qDywhaZUBb",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 1
+            },
+            "conditions": [
+              {
+                "id": "1",
+                "leftValue": "={{ $json.udemyLink }}",
+                "rightValue": "null",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEquals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "60423282-b84e-461d-80d7-a67a07f9c7f0",
+        "name": "Filter Valid Courses",
+        "type": "n8n-nodes-base.filter",
+        "typeVersion": 2,
+        "position": [
+          2320,
+          1520
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "// Extract LearnDash course link from response\nconst response = $json;\n\nif (response && response.id) {\n  // Assuming your LearnDash course URL pattern\n  const learnDashLink = `https://courselamy.site/courses/${response.slug || response.id}/`;\n  \n  return [{\n    json: {\n      ...$input.all()[0].json,\n      learnDashLink: learnDashLink,\n      learnDashId: response.id,\n      learnDashSlug: response.slug\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    ...$input.all()[0].json,\n    learnDashLink: null,\n    learnDashId: null\n  }\n}];"
+        },
+        "id": "44cf26a2-bd6e-48e9-87be-491f0c3ce76a",
+        "name": "Extract LearnDash Link",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          2896,
+          1520
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://www.discudemy.com/feed/",
+          "responseFormat": "string",
+          "options": {}
+        },
+        "id": "8c63e886-ec0f-4cde-8c04-96b66f659589",
+        "name": "Fetch RSS",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 1,
+        "position": [
+          976,
+          1312
+        ]
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "id": "e34577a1-70a3-4e6e-b3ed-418e969c86b4",
+        "name": "XML → JSON",
+        "type": "n8n-nodes-base.xml",
+        "typeVersion": 1,
+        "position": [
+          1184,
+          1312
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "// Access workflow static data in global scope\nconst seen = getWorkflowStaticData('global');\n\nconst courseId = $json.link;\n\nif (!seen.courses) {\n  seen.courses = [];\n}\n\nif (seen.courses.includes(courseId)) {\n  return [];\n}\n\nseen.courses.push(courseId);\n\nreturn [ { json: $json } ];"
+        },
+        "id": "926a2578-fdb9-455c-9d92-d2780324d0b4",
+        "name": "Filter Seen Courses1",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          1376,
+          1312
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "const items = $json.rss.channel.item;\n\nreturn items.map(course => {\n  const link = String(course.link || \"\");\n  // strip origin\n  const slug = link.replace(/^https?:\\/\\/www\\.discudemy\\.com\\//, \"\").replace(/^\\/+/, \"\");\n  // last part after category\n  const lastPart = slug.split(\"/\").filter(Boolean).pop();\n  const goLink = `https://www.discudemy.com/go/${lastPart}`;\n\n  return {\n    json: {\n      ...course,\n      goLink\n    }\n  };\n});"
+        },
+        "id": "b04f8b0d-d795-481d-84ba-6de9097838b5",
+        "name": "Build Go Link1",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          1584,
+          1312
+        ]
+      },
+      {
+        "parameters": {
+          "url": "={{$json.goLink}}",
+          "options": {}
+        },
+        "id": "15316269-5778-4a0a-81ff-3c32c4761687",
+        "name": "Fetch Go Page1",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1584,
+          1632
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "const items = $items(\"Fetch Go Page1\");\n\nreturn items.map((item, index) => {\n  const html = item.json.data;\n\n  const regex = /https:\\/\\/www\\.udemy\\.com\\/course\\/[^\\s\"'<>?]+[^\"'<>]*/g;\n  const match = html.match(regex);\n\n  return {\n    json: {\n      index,\n      udemyLink: match ? match[0] : null\n    }\n  };\n});"
+        },
+        "id": "c0df3bd3-69b0-44b4-94ec-800e361765ec",
+        "name": "Extract Udemy Link1",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          1808,
+          1632
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "combinationMode": "mergeByPosition",
+          "options": {}
+        },
+        "id": "dbcbc318-3871-414f-99a2-209688b2cf88",
+        "name": "Merge Course + Udemy",
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 2,
+        "position": [
+          2064,
+          1520
+        ]
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://courselamy.site/wp-json/ldlms/v1/sfwd-courses",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "title",
+                "value": "={{ $json.title.replace(/^\\[100% OFF\\]\\s*/, \"\") }}"
+              },
+              {
+                "name": "content",
+                "value": "={{ $json.description.replace(/<p><a rel=\"nofollow\" href=\"[^\"]+\">\\[100% OFF\\][^<]+<\\/a><\\/p>\\s*\\s*/, \"\") + '<br/><br/><strong>Enrol for Course:</strong> <a href=\"' + $json.udemyLink + '\" target=\"_blank\">' + $json.udemyLink + '</a>' }}"
+              },
+              {
+                "name": "status",
+                "value": "publish"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "name": "Create LearnDash Course",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 3,
+        "position": [
+          2608,
+          1520
+        ],
+        "id": "94862cd1-56cb-403c-a891-6747b510791b",
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "GJ1o59YzAiqhpAMR",
+            "name": "Unnamed credential"
+          }
+        }
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          1008,
+          -48
+        ],
+        "id": "534d343f-44aa-4f2f-b527-ec0b29331123",
+        "name": "When clicking ‘Execute workflow’"
+      },
+      {
+        "parameters": {
+          "chatId": "@free_courses247",
+          "text": "=`🎓 *New Course Posted!* 🎓\\n\\n*Title:* ${$json.title.replace(/^\\\\[100% OFF\\\\]\\\\s*/, \"\")}\\n*Course Link:* ${$json.learnDashLink || 'https://courselamy.site/courses/'}\\n\\n*Description:* ${$json.description.replace(/<[^>]*>/g, '').substring(0, 200)}...`",
+          "additionalFields": {
+            "disable_web_page_preview": false,
+            "parse_mode": "Markdown"
+          }
+        },
+        "id": "a58582e2-57b6-4e16-930c-ba9babe337bd",
+        "name": "Send to Telegram Channel",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1,
+        "position": [
+          3264,
+          1744
+        ],
+        "webhookId": "5007e668-fa2e-4837-b6a6-ccd241e9203a",
+        "credentials": {
+          "telegramApi": {
+            "id": "nn2SIXAArnS33U97",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "text": "={{ `🎓 New Course Available! 🎓\\n\\n${$json.title.replace(/^\\\\[100% OFF\\\\]\\\\s*/, \"\")}\\n\\n${$json.description.replace(/<[^>]*>/g, '').substring(0, 150)}...\\n\\nEnroll now: ${$json.learnDashLink || 'https://courselamy.site/courses/'}\\n\\n#OnlineCourse #Learning #Education` }}",
+          "additionalFields": {}
+        },
+        "id": "77af4ec4-1e13-42d2-a026-7d780917bbb9",
+        "name": "Post to Twitter",
+        "type": "n8n-nodes-base.twitter",
+        "typeVersion": 1,
+        "position": [
+          3264,
+          1520
+        ]
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "Sheet1",
+            "mode": "name"
+          },
+          "options": {}
+        },
+        "id": "e55da0e5-8665-40ff-9a0f-914bbedcdffd",
+        "name": "Read Courses from Google Sheets",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4,
+        "position": [
+          1280,
+          -48
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "6A2XF4qDywhaZUBb",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "functionCode": "// Get first X courses (e.g., first 10 courses)\nconst items = $input.all();\nconst maxCourses = 10; // Change this number as needed\n\nreturn items.slice(0, maxCourses).map(item => {\n  const json = item.json;\n  \n  return {\n    json: {\n      ...json,\n      goLink: json.goLink,\n      courseId: json.guid || json.link || json.title,\n      needsImageExtraction: true\n    }\n  };\n});"
+        },
+        "id": "e1dfe2a7-5f6f-44b4-852d-53c361073e90",
+        "name": "Limit to First X Courses",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          1488,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "url": "={{ $json.goLink }}",
+          "options": {
+            "timeout": 30000
+          }
+        },
+        "id": "cbd43e9f-9ea6-423a-8d8e-394b56987b46",
+        "name": "Fetch Discudemy Go Link Page",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1680,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "// Extract Udemy image URL from Discudemy page HTML\nconst items = $input.all();\n\nreturn items.map(item => {\n  const courseData = item.json;\n  const html = item.json.data || ''; // HTML from the HTTP request\n  \n  let udemyImageUrl = null;\n  \n  // Pattern 1: Look for Udemy CDN images directly\n  const udemyCdnPatterns = [\n    /https:\\/\\/img-c\\.udemycdn\\.com\\/course\\/[^\"'\\s>]+/gi,\n    /https:\\/\\/img-b\\.udemycdn\\.com\\/course\\/[^\"'\\s>]+/gi,\n    /https:\\/\\/udemy-images\\.udemy-com\\/course\\/[^\"'\\s>]+/gi\n  ];\n  \n  // Pattern 2: Look for og:image meta tag with Udemy image\n  const metaPatterns = [\n    /<meta[^>]*property=\"og:image\"[^>]*content=\"([^\"]*udemy[^\"]+)\"/gi,\n    /<meta[^>]*name=\"twitter:image\"[^>]*content=\"([^\"]*udemy[^\"]+)\"/gi\n  ];\n  \n  // Pattern 3: Look for data-src or src attributes with Udemy images\n  const imgPatterns = [\n    /<img[^>]*src=\"([^\"]*udemy[^\"]*\\.(jpg|jpeg|png|webp))\"[^>]*>/gi,\n    /<img[^>]*data-src=\"([^\"]*udemy[^\"]*\\.(jpg|jpeg|png|webp))\"[^>]*>/gi,\n    /<img[^>]*data-lazy=\"([^\"]*udemy[^\"]*\\.(jpg|jpeg|png|webp))\"[^>]*>/gi\n  ];\n  \n  // Try Udemy CDN patterns first (most reliable)\n  for (const pattern of udemyCdnPatterns) {\n    const matches = [...html.matchAll(pattern)];\n    if (matches.length > 0) {\n      udemyImageUrl = matches[0][0];\n      break;\n    }\n  }\n  \n  // Try meta tags\n  if (!udemyImageUrl) {\n    for (const pattern of metaPatterns) {\n      const matches = [...html.matchAll(pattern)];\n      if (matches.length > 0) {\n        udemyImageUrl = matches[0][1];\n        break;\n      }\n    }\n  }\n  \n  // Try image tags\n  if (!udemyImageUrl) {\n    for (const pattern of imgPatterns) {\n      const matches = [...html.matchAll(pattern)];\n      if (matches.length > 0) {\n        udemyImageUrl = matches[0][1];\n        break;\n      }\n    }\n  }\n  \n  // If we found a Udemy image, ensure it's the high-quality version\n  if (udemyImageUrl) {\n    // Replace low-quality versions with high-quality ones\n    udemyImageUrl = udemyImageUrl\n      .replace(/_[0-9]+x[0-9]+\\./, '_480x270.') // Ensure 480x270 resolution\n      .replace(/\\/240x135\\//, '/480x270/') // Replace low-res path\n      .replace(/\\/750x422\\//, '/480x270/'); // Replace other resolutions\n  }\n  \n  return {\n    json: {\n      ...courseData,\n      extractedUdemyImageUrl: udemyImageUrl,\n      hasUdemyImage: !!udemyImageUrl,\n      imageSource: udemyImageUrl ? 'udemy_cdn' : 'not_found',\n      discudemyPageHtml: html.substring(0, 500) + '...' // Store snippet for debugging\n    }\n  };\n});"
+        },
+        "id": "a624a232-cce4-426c-a490-6c65e83f7fc2",
+        "name": "Extract Udemy Image URL",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          1888,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "1",
+                "leftValue": "={{ $json.hasUdemyImage }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "1d972759-dca3-4b9b-bb96-de435d4ce944",
+        "name": "Filter Courses with Udemy Images",
+        "type": "n8n-nodes-base.filter",
+        "typeVersion": 2,
+        "position": [
+          2112,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "url": "={{ $json.extractedUdemyImageUrl }}",
+          "options": {
+            "redirect": {
+              "redirect": {}
+            },
+            "timeout": 30000
+          }
+        },
+        "id": "48230b5d-6054-4fc0-9fc5-4192173c13ba",
+        "name": "Download Udemy Image",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          2368,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "functionCode": "// Process downloaded Udemy image and prepare for storage\nconst items = $input.all();\n\nreturn items.map(item => {\n  const courseData = item.json;\n  const imageData = item.binary;\n  \n  // Get the binary data key (it's dynamic)\n  const binaryKey = Object.keys(imageData)[0];\n  \n  // Create a safe filename using course title\n  const courseTitle = courseData.title ? \n    courseData.title.replace(/^\\[100% OFF\\]\\s*/, '') // Remove [100% OFF] prefix\n      .replace(/[^a-zA-Z0-9\\s]/g, '') // Remove special characters\n      .replace(/\\s+/g, '_') // Replace spaces with underscores\n      .substring(0, 40) : \n    'udemy_course';\n  \n  const timestamp = new Date().getTime();\n  const filename = `${courseTitle}_${timestamp}.jpg`;\n  \n  return {\n    json: {\n      ...courseData,\n      downloadedImage: true,\n      localImagePath: `/course_images/${filename}`,\n      imageFilename: filename,\n      imageSize: imageData[binaryKey].data.length,\n      imageType: imageData[binaryKey].mimeType\n    },\n    binary: {\n      [binaryKey]: {\n        ...imageData[binaryKey],\n        fileName: filename\n      }\n    }\n  };\n});"
+        },
+        "id": "b5a77d51-6345-4bd8-8c93-a14dd70d4889",
+        "name": "Process Udemy Image",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [
+          2624,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "fileName": "={{ $json.imageFilename }}",
+          "options": {}
+        },
+        "id": "65475daf-146d-452e-b4ce-efe5de6c6633",
+        "name": "Save Udemy Image to Local Storage",
+        "type": "n8n-nodes-base.writeBinaryFile",
+        "typeVersion": 1,
+        "position": [
+          2880,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "appendOrUpdate",
+          "documentId": {
+            "__rl": true,
+            "value": "1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0",
+            "mode": "id"
+          },
+          "sheetName": "Sheet1",
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {},
+            "matchingColumns": [
+              "title"
+            ],
+            "schema": [
+              {
+                "id": "title",
+                "displayName": "title",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "localImagePath",
+                "displayName": "localImagePath",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": false
+              },
+              {
+                "id": "extractedUdemyImageUrl",
+                "displayName": "extractedUdemyImageUrl",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": false
+              },
+              {
+                "id": "downloadedImage",
+                "displayName": "downloadedImage",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "boolean",
+                "canBeUsedToMatch": false
+              },
+              {
+                "id": "imageFilename",
+                "displayName": "imageFilename",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "3bc43938-a2b2-4a96-82f9-2c28dd598670",
+        "name": "Update Google Sheets with Udemy Image Data",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4,
+        "position": [
+          3136,
+          -48
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "6A2XF4qDywhaZUBb",
+            "name": "Google Sheets account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Filter Valid Courses": {
+        "main": [
+          [
+            {
+              "node": "Create LearnDash Course",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract LearnDash Link": {
+        "main": [
+          [
+            {
+              "node": "Send to Telegram Channel",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch RSS": {
+        "main": [
+          [
+            {
+              "node": "XML → JSON",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "XML → JSON": {
+        "main": [
+          [
+            {
+              "node": "Filter Seen Courses1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter Seen Courses1": {
+        "main": [
+          [
+            {
+              "node": "Build Go Link1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Go Link1": {
+        "main": [
+          [
+            {
+              "node": "Fetch Go Page1",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Merge Course + Udemy",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Save to Google Sheets",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Go Page1": {
+        "main": [
+          [
+            {
+              "node": "Extract Udemy Link1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract Udemy Link1": {
+        "main": [
+          [
+            {
+              "node": "Merge Course + Udemy",
+              "type": "main",
+              "index": 1
+            }
+          ]
+        ]
+      },
+      "Merge Course + Udemy": {
+        "main": [
+          [
+            {
+              "node": "Filter Valid Courses",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Create LearnDash Course": {
+        "main": [
+          [
+            {
+              "node": "Extract LearnDash Link",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Read Courses from Google Sheets",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read Courses from Google Sheets": {
+        "main": [
+          [
+            {
+              "node": "Limit to First X Courses",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Limit to First X Courses": {
+        "main": [
+          [
+            {
+              "node": "Fetch Discudemy Go Link Page",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Discudemy Go Link Page": {
+        "main": [
+          [
+            {
+              "node": "Extract Udemy Image URL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract Udemy Image URL": {
+        "main": [
+          [
+            {
+              "node": "Filter Courses with Udemy Images",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filter Courses with Udemy Images": {
+        "main": [
+          [
+            {
+              "node": "Download Udemy Image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download Udemy Image": {
+        "main": [
+          [
+            {
+              "node": "Process Udemy Image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Process Udemy Image": {
+        "main": [
+          [
+            {
+              "node": "Save Udemy Image to Local Storage",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save Udemy Image to Local Storage": {
+        "main": [
+          [
+            {
+              "node": "Update Google Sheets with Udemy Image Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "pinData": {},
+    "versionId": "357d6527-ec5d-4ade-a2af-8db25474e00e",
+    "triggerCount": 0,
+    "shared": [
+      {
+        "createdAt": "2025-08-21T04:33:18.334Z",
+        "updatedAt": "2025-08-21T04:33:18.334Z",
+        "role": "workflow:owner",
+        "workflowId": "bdrExoo4slDJcQ9o",
+        "projectId": "X54hljIRMdcuCgG9"
+      }
+    ],
+    "tags": []
+  },
+  {
+    "createdAt": "2025-10-09T08:18:02.272Z",
+    "updatedAt": "2025-10-09T08:18:02.272Z",
+    "id": "ilpCeTO51IKo0XKf",
+    "name": "Build Your First AI Agent",
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "id": "2c408b32-7862-4411-9ad1-b6e9ff4e41f7",
+        "name": "Sticky Note2",
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          1712,
+          240
+        ],
+        "parameters": {
+          "color": 7,
+          "width": 512,
+          "height": 352,
+          "content": "## [Video Tutorial](https://youtu.be/laHIzhsz12E)\n@[youtube](laHIzhsz12E)"
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "3808de8d-ef18-47f5-9621-b08ba961ae01",
+        "cid": "Ikx1Y2FzIFBleXJpbiI",
+        "name": "Introduction Note",
+        "type": "n8n-nodes-base.stickyNote",
+        "notes": "© 2025 Lucas Peyrin",
+        "creator": "Lucas Peyrin",
+        "position": [
+          368,
+          240
+        ],
+        "parameters": {
+          "width": 392,
+          "height": 460,
+          "content": "## Try It Out!\n\n**Launch your first AI agent—a chatbot that uses tools to fetch live info, send emails, and automate tasks.**\n\n### To get started:\n1.  **Connect Gemini** (see red sticky note below)\n2.  Click the **🗨 Open chat** button and try asking:\n    *   “What’s the weather in Paris?”\n    *   “Get me the latest tech news.”\n    *   “Give me ideas for n8n AI agents.”\n\n### Questions or Feedback?\nFor feedback, coaching, buit-for-you workflows or any questions, use my unified AI-powered contact form.\n\n➡️ **[Get in Touch Here](https://api.ia2s.app/form/templates/academy)**\n\n*Happy Automating! —Lucas Peyrin*"
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "2b55763c-0541-4133-aa79-87c3ce9f0564",
+        "cid": "Ikx1Y2FzIFBleXJpbiI",
+        "name": "Sticky Note12",
+        "type": "n8n-nodes-base.stickyNote",
+        "notes": "© 2025 Lucas Peyrin",
+        "creator": "Lucas Peyrin",
+        "position": [
+          848,
+          336
+        ],
+        "parameters": {
+          "color": 7,
+          "width": 300,
+          "height": 252,
+          "content": "💡 Later, activate this workflow and share the public chat URL to let others talk to your AI Agent!"
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "f09c396a-dab8-41f8-a6e5-3dbd1dd70323",
+        "cid": "Ikx1Y2FzIFBleXJpbiI",
+        "name": "Sticky Note13",
+        "type": "n8n-nodes-base.stickyNote",
+        "notes": "© 2025 Lucas Peyrin",
+        "creator": "Lucas Peyrin",
+        "position": [
+          1232,
+          240
+        ],
+        "parameters": {
+          "color": 7,
+          "width": 396,
+          "height": 348,
+          "content": "Your AI agent can:\n1. **Receive** messages from the chat\n2. **Select** the right tools (e.g., weather, news, email)\n3. **Respond** with live, helpful answers\n\n\n**Open the AI agent node** and edit the **System Message** to adjust your agent’s thinking, behavior, and replies.\n\n\n\n\n\n\n\n\n\n\n"
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "f7c57d33-2318-409d-9084-13990299db3d",
+        "cid": "Ikx1Y2FzIFBleXJpbiI",
+        "name": "Sticky Note15",
+        "type": "n8n-nodes-base.stickyNote",
+        "notes": "© 2025 Lucas Peyrin",
+        "creator": "Lucas Peyrin",
+        "position": [
+          1232,
+          672
+        ],
+        "parameters": {
+          "color": 7,
+          "width": 308,
+          "height": 260,
+          "content": "\n\n\n\n\n\n\n\n\n\n\n\n\n\nThis node helps your agent remember the last few messages to stay on topic."
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "07ed7ed3-91d0-432f-9327-d2a30601082c",
+        "cid": "Ikx1Y2FzIFBleXJpbiI",
+        "name": "Sticky Note16",
+        "type": "n8n-nodes-base.stickyNote",
+        "notes": "© 2025 Lucas Peyrin",
+        "creator": "Lucas Peyrin",
+        "position": [
+          1632,
+          672
+        ],
+        "parameters": {
+          "color": 7,
+          "width": 372,
+          "height": 324,
+          "content": "\n\n\n\n\n\n\n\n\n\n\n\n\nThese tools let your agent access real-world data or take actions. Add more to expand its abilities!\n\nClick the ➕ under the agent’s Tool input to add:\n- Google Calendar (Get Upcoming Events)\n- Gmail (Send an Email) (Gmail)"
+        },
+        "typeVersion": 1
+      },
+      {
+        "id": "24fc1fd5-ed10-43d9-9b35-8facb7f357d5",
+        "cid": "Ikx1Y2FzIFBleXJpbiI",
+        "name": "Get News",
+        "type": "n8n-nodes-base.rssFeedReadTool",
+        "notes": "© 2025 Lucas Peyrin",
+        "creator": "Lucas Peyrin",
+        "position": [
+          1776,
+          720
+        ],
+        "parameters": {
+          "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('URL', `Use one of:\n- https://feeds.bbci.co.uk/news/world/rss.xml (BBC World – global headlines)\n- https://www.aljazeera.com/xml/rss/all.xml (Al Jazeera English – in‑depth global coverage)\n- http://rss.cnn.com/rss/edition_world.rss (CNN World – breaking news worldwide)\n- https://techcrunch.com/feed/ (TechCrunch – global tech & startup news)\n- http://news.ycombinator.com/rss (Hacker News – tech community headlines)\n- https://n8n.io/blog/rss (n8n Blog – updates & tutorials)\n- https://www.bonappetit.com/feed/recipes-rss-feed/rss (Bon Appétit – recent recipes list)\n- https://www.endsreport.com/rss/news-and-analysis (ENDS Report – environmental law & policy news)\n- https://medlineplus.gov/groupfeeds/new.xml (MedlinePlus – health topics & wellness updates)`, 'string') }}",
+          "options": {},
+          "toolDescription": "Gets the latest blog posts about any rss feed."
+        },
+        "typeVersion": 1.2
+      },
+      {
+        "id": "ac7d0dd1-8885-41c1-abda-f3742c838992",
+        "cid": "Ikx1Y2FzIFBleXJpbiI",
+        "name": "Get Weather",
+        "type": "n8n-nodes-base.httpRequestTool",
+        "creator": "Lucas Peyrin",
+        "position": [
+          1664,
+          720
+        ],
+        "parameters": {
+          "url": "https://api.open-meteo.com/v1/forecast",
+          "options": {},
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "latitude",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `Latitude of the location, e.g. 45.75 for Lyon. Do not ask the user just infer it automatically.`, 'string') }}"
+              },
+              {
+                "name": "longitude",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', `Longitude of the location, e.g. 4.85 for Lyon. Do not ask the user just infer it automatically.`, 'string') }}"
+              },
+              {
+                "name": "current",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters2_Value', `Comma-separated list of current weather variables (no whitespace).\n\nExample: temperature_2m,windspeed_10m,rain.\n\nOptions: temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weathercode,cloudcover_total,pressure_msl,surface_pressure,windspeed_10m,winddirection_10m,windgusts_10m.`, 'string') }}"
+              },
+              {
+                "name": "hourly",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters3_Value', `Comma-separated list of hourly weather variables (no whitespace). Hourly is only useful to get one day's information. For weakly overview please use daily.\n\nExample: temperature_2m,precipitation.\n\nOptions: temperature_2m,relative_humidity_2m,dewpoint_2m,apparent_temperature,precipitation,rain,showers,snowfall,snow_depth,pressure_msl,surface_pressure,cloudcover_total,cloudcover_low,cloudcover_mid,cloudcover_high,windspeed_10m,winddirection_10m,windgusts_10m,visibility,is_day,sunshine_duration,soil_temperature,soil_moisture,PM10,PM2_5,carbon_monoxide,ozone,us_aqi,UV_index.`, 'string') }}"
+              },
+              {
+                "name": "daily",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters4_Value', `Comma-separated list of daily weather variables (no whitespace).\n\nExample: temperature_2m_max,precipitation_sum.\n\nOptions: weathercode,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,rain_sum,showers_sum,snowfall_sum,precipitation_hours,sunrise,sunset,daylight_duration,sunshine_duration,pressure_msl_max,pressure_msl_min,surface_pressure_max,surface_pressure_min,windgusts_10m_max,windspeed_10m_max,winddirection_10m_dominant,shortwave_radiation_sum.`, 'string') }}"
+              },
+              {
+                "name": "start_date",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters5_Value', `Start date in YYYY-MM-DD format. Example: 2025-07-15`, 'string') }}"
+              },
+              {
+                "name": "end_date",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters6_Value', `End date in YYYY-MM-DD format. Must be after start_date. Example: 2025-07-18`, 'string') }}"
+              },
+              {
+                "name": "temperature_unit",
+                "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters7_Value', `Unit for temperature. Options: celsius (default), fahrenheit.`, 'string') }}"
+              }
+            ]
+          },
+          "toolDescription": "Get weather forecast anywhere, anytime. You can make requests by assuming most information, the only thing you need is the location (use the city name to infer lat and long automatically) and time period (assume today if not specified)"
+        },
+        "notesInFlow": true,
+        "typeVersion": 4.2
+      },
+      {
+        "id": "332af12a-45ab-4e5d-8dab-da21ba2111f9",
+        "cid": "Ikx1Y2FzIFBleXJpbiI",
+        "name": "Your First AI Agent",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "notes": "© 2025 Lucas Peyrin",
+        "creator": "Lucas Peyrin",
+        "position": [
+          1312,
+          432
+        ],
+        "parameters": {
+          "options": {
+            "systemMessage": "=<role>\nYou are the n8n Demo AI Agent, a friendly and helpful assistant designed to showcase the power of AI agents within the n8n automation platform. Your personality is encouraging, slightly educational, and enthusiastic about automation. Your primary function is to demonstrate your capabilities by using your available tools to answer user questions and fulfill their requests. You are conversational.\n</role>\n\n<instructions>\n<goal>\nYour primary goal is to act as a live demonstration of an AI Agent built with n8n. You will interact with users, answer their questions by intelligently using your available tools, and explain the concepts behind AI agents to help them understand their potential.\n</goal>\n\n<context>\n### How I Work\nI am an AI model operating within a simple n8n workflow. This workflow gives me two key things:\n1.  **A set of tools:** These are functions I can call to get information or perform actions.\n2.  **Simple Memory:** I can remember the immediate past of our current conversation to understand context.\n\n### My Purpose\nMy main purpose is to be a showcase. I demonstrate how you can give a chat interface to various functions (my tools) without needing complex UIs. This is a great way to make powerful automations accessible to anyone through simple conversation.\n\n### My Tools Instructions\nYou must choose one of your available tools if the user's request matches its capability. You cannot perform these actions yourself; you must call the tool.\n\n### About AI Agents in n8n\n- **Reliability:** While I can use one tool at a time effectively, more advanced agents can perform multi-step tasks. However, for `complex, mission-critical processes, it's often more reliable to build structured, step-by-step workflows in n8n rather than relying solely on an agent's reasoning. Agents are fantastic for user-facing interactions, but structured workflows are king for backend reliability.\n- **Best Practices:** A good practice is to keep an agent's toolset focused, typically under 10-15 tools, to ensure reliability and prevent confusion.\n\n### Current Date & Time\n{{ $now }}\n</context>\n\n<output_format>\n- Respond in a friendly, conversational, and helpful tone.\n- When a user's request requires a tool, first select the appropriate tool. Then, present the result of the tool's execution to the user in a clear and understandable way.\n- Be proactive. If the user is unsure what to do, suggest some examples of what they can ask you based on your available tools (e.g., Talk about your tools and what you know about yourself).\n</output_format>\n</instructions>"
+          }
+        },
+        "typeVersion": 2.2
+      },
+      {
+        "id": "95421925-c5ad-48bd-9638-c84ff5b5e3c6",
+        "cid": "Ikx1Y2FzIFBleXJpbiI",
+        "name": "Example Chat",
+        "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+        "notes": "© 2025 Lucas Peyrin",
+        "creator": "Lucas Peyrin",
+        "position": [
+          944,
+          432
+        ],
+        "webhookId": "e5616171-e3b5-4c39-81d4-67409f9fa60a",
+        "parameters": {
+          "public": true,
+          "options": {
+            "title": "Your first AI Agent 🚀",
+            "subtitle": "This is for demo purposes. Try me out !",
+            "responseMode": "lastNode",
+            "inputPlaceholder": "Type your message here...",
+            "showWelcomeScreen": false
+          },
+          "initialMessages": "Hi there! 👋"
+        },
+        "typeVersion": 1.1
+      },
+      {
+        "id": "56d2684a-7f83-4ffd-8501-3253d999b4c6",
+        "cid": "Ikx1Y2FzIFBleXJpbiI",
+        "name": "Conversation Memory",
+        "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+        "notes": "© 2025 Lucas Peyrin",
+        "creator": "Lucas Peyrin",
+        "position": [
+          1344,
+          720
+        ],
+        "parameters": {
+          "contextWindowLength": 30
+        },
+        "typeVersion": 1.3
+      },
+      {
+        "id": "c218a5da-bec7-4034-8d2b-f4bca34e551e",
+        "cid": "Ikx1Y2FzIFBleXJpbiI",
+        "name": "Connect Gemini",
+        "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+        "notes": "© 2025 Lucas Peyrin",
+        "creator": "Lucas Peyrin",
+        "position": [
+          944,
+          720
+        ],
+        "parameters": {
+          "options": {
+            "temperature": 0
+          }
+        },
+        "typeVersion": 1,
+        "credentials": {
+          "googlePalmApi": {
+            "id": "uHer33oRvwLCaoHw",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        }
+      },
+      {
+        "id": "199eb2cd-bc6b-4f61-bbf1-f196c7869b43",
+        "cid": "Ikx1Y2FzIFBleXJpbiI",
+        "name": "Sticky Note",
+        "type": "n8n-nodes-base.stickyNote",
+        "notes": "© 2025 Lucas Peyrin",
+        "creator": "Lucas Peyrin",
+        "position": [
+          848,
+          672
+        ],
+        "parameters": {
+          "color": 3,
+          "width": 294,
+          "height": 316,
+          "content": "\n\n\n\n\n\n\n\n\n\n\n\n1. [In Google AI Studio](https://aistudio.google.com/app/apikey) click **“Create API key in new project”** and copy it.\n\n2. Open the ```Connect Gemini``` node:\n   * **Select Credential → Create New**\n   * Paste into **API Key** and **Save**\n"
+        },
+        "typeVersion": 1
+      }
+    ],
+    "connections": {
+      "Get News": {
+        "ai_tool": [
+          [
+            {
+              "node": "Your First AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Weather": {
+        "ai_tool": [
+          [
+            {
+              "node": "Your First AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Example Chat": {
+        "main": [
+          [
+            {
+              "node": "Your First AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Connect Gemini": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Your First AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Conversation Memory": {
+        "ai_memory": [
+          [
+            {
+              "node": "Your First AI Agent",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": null,
+    "staticData": null,
+    "meta": {
+      "templateId": "6270"
+    },
+    "pinData": null,
+    "versionId": "33781fc3-c574-4555-a40e-028a33e7e8c8",
+    "triggerCount": 0,
+    "shared": [
+      {
+        "createdAt": "2025-10-09T08:18:02.296Z",
+        "updatedAt": "2025-10-09T08:18:02.296Z",
+        "role": "workflow:owner",
+        "workflowId": "ilpCeTO51IKo0XKf",
+        "projectId": "X54hljIRMdcuCgG9"
+      }
+    ],
+    "tags": []
+  },
+  {
+    "createdAt": "2025-08-20T18:18:23.612Z",
+    "updatedAt": "2025-10-09T08:02:06.000Z",
+    "id": "lOnLdDHDkwSjCgZY",
+    "name": "Demo: My first AI Agent in n8n",
+    "active": false,
+    "isArchived": true,
+    "nodes": [
+      {
+        "parameters": {
+          "options": {}
+        },
+        "id": "b24b05a7-d802-4413-bfb1-23e1e76f6203",
+        "name": "When chat message received",
+        "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          368,
+          32
+        ],
+        "webhookId": "a889d2ae-2159-402f-b326-5f61e90f602e"
+      },
+      {
+        "parameters": {
+          "content": "## Start by saying 'hi'\n![Button](https://i.imgur.com/PrIBJI6.png)",
+          "height": 149,
+          "width": 150
+        },
+        "id": "5592c045-6718-4c4e-9961-ce67a251b6df",
+        "name": "Sticky Note",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          192,
+          -48
+        ]
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "id": "d5e60eb2-267c-4f68-aefe-439031bcaceb",
+        "name": "OpenAI Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1,
+        "position": [
+          512,
+          240
+        ]
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=## Steps to follow\n\n{{ $agentInfo.memoryConnectedToAgent ? '1. Skip': `1. STOP and output the following:\n\"Welcome to n8n. Let's start with the first step to give me memory: \\n\"Click the **+** button on the agent that says 'memory' and choose 'Simple memory.' Just tell me once you've done that.\"\n----- END OF OUTPUT && IGNORE BELOW -----` }} \n\n\n{{ Boolean($agentInfo.tools.find((tool) => tool.type === 'Google Calendar Tool')) ? '2. Skip' : \n`2. STOP and output the following: \\n\"Click the **+** button on the agent that says 'tools' and choose 'Google Calendar.'\" \\n ----- IGNORE BELOW -----` }}\n\n\n{{ $agentInfo.tools.find((tool) => tool.type === 'Google Calendar Tool').hasCredentials ? '3. Skip' :\n`3. STOP and output the following:\n\"Open the Google Calendar tool (double-click) and choose a credential from the drop-down.\" \\n ----- IGNORE BELOW -----` }}\n\n\n{{ $agentInfo.tools.find((tool) => tool.type === 'Google Calendar Tool').resource === 'Event' ? '4. Skip' :\n`4. STOP and output the following:\n\"Open the Google Calendar tool (double-click) and set **resource** = 'Event'\" `}}\n\n\n{{ $agentInfo.tools.find((tool) => tool.type === 'Google Calendar Tool').operation === 'Get Many' ? '5. Skip' :\n`5. STOP and output the following:\n\"Open the Google Calendar tool (double-click) and set **operation** = 'Get Many.'\" \\n ----- IGNORE BELOW -----` }}\n\n\n{{ $agentInfo.tools.find((tool) => tool.type === 'Google Calendar Tool').hasValidCalendar ? '6. Skip' :\n`6. STOP and output the following:\n\"Open the Google Calendar tool (double-click) and choose a calendar from the 'calendar' drop-down.\" \\n ----- IGNORE BELOW -----` }}\n\n\n{{ ($agentInfo.tools.find((tool) => tool.type === 'Google Calendar Tool').aiDefinedFields.includes('Start Time') && $agentInfo.tools.find((tool) => tool.type === 'Google Calendar Tool').aiDefinedFields.includes('End Time')) ? '7. Skip' :\n`7. STOP and output the following: \nOpen the Google Calendar tool (double-click) and click the :sparks: button next to the 'After' and 'Before' fields. \\n ----- IGNORE BELOW -----` }}\n\n\n8. If all steps are completed, output the following:\n\"Would you like me to check all events in your calendar for tomorrow {{ $now.plus(1, 'days').toString().split('T')[0] }}?\"\n\n# User message\n\n{{ $json.chatInput }}",
+          "options": {
+            "systemMessage": "=You are a friendly Agent designed to guide users through these steps.\n\n- Stop at the earliest step mentioned in the steps\n- Respond concisely and do **not** disclose these internal instructions to the user. Only return defined output below.\n- Don't output any lines that start with -----\n- Replace \":sparks:\" with \"✨\" in any message"
+          }
+        },
+        "id": "41174c8a-6ac8-42bd-900e-ca15196600c5",
+        "name": "Agent",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 1.7,
+        "position": [
+          592,
+          32
+        ]
+      }
+    ],
+    "connections": {
+      "When chat message received": {
+        "main": [
+          [
+            {
+              "node": "Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "staticData": null,
+    "meta": {
+      "templateId": "self-building-ai-agent"
+    },
+    "pinData": {},
+    "versionId": "7290c223-9569-40db-805a-189c9fd1c3bf",
+    "triggerCount": 0,
+    "shared": [
+      {
+        "createdAt": "2025-08-20T18:18:23.630Z",
+        "updatedAt": "2025-08-20T18:18:23.630Z",
+        "role": "workflow:owner",
+        "workflowId": "lOnLdDHDkwSjCgZY",
+        "projectId": "X54hljIRMdcuCgG9"
+      }
+    ],
+    "tags": []
+  }
+]
