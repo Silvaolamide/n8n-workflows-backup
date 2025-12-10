@@ -1,189 +1,835 @@
 {
-  "createdAt": "2025-08-23T22:46:32.047Z",
-  "updatedAt": "2025-10-09T08:02:18.000Z",
-  "id": "SupOl9rOlZ62N5lV",
-  "name": "My workflow",
+  "createdAt": "2025-08-21T04:33:18.329Z",
+  "updatedAt": "2025-10-09T08:02:22.000Z",
+  "id": "bdrExoo4slDJcQ9o",
+  "name": "TaiwoBlog",
   "active": false,
   "isArchived": true,
   "nodes": [
     {
       "parameters": {
-        "rule": {
-          "interval": [
-            {}
-          ]
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0/edit?pli=1&gid=0#gid=0",
+          "mode": "url"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "title"
+          ],
+          "schema": [
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "pubDate",
+              "displayName": "pubDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "guid",
+              "displayName": "guid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "enclosure",
+              "displayName": "enclosure",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "goLink",
+              "displayName": "goLink",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "f4410056-38f9-4495-846e-015b43a1db51",
+      "name": "Save to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        3264,
+        1312
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6A2XF4qDywhaZUBb",
+          "name": "Google Sheets account"
         }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "1",
+              "leftValue": "={{ $json.udemyLink }}",
+              "rightValue": "null",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
       },
-      "id": "99b39756-d07b-4570-b98d-4ac7e9c6c794",
-      "name": "Schedule Trigger",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.1,
+      "id": "60423282-b84e-461d-80d7-a67a07f9c7f0",
+      "name": "Filter Valid Courses",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
       "position": [
-        -1008,
-        48
+        2320,
+        1520
       ]
     },
     {
       "parameters": {
-        "functionCode": "// Configuration - Modify these parameters as needed\nconst CONFIG = {\n  symbols: ['MERLUSDT', 'ZKJUSDT', 'BUSDT', 'KERNELUSDT', 'RESOLVUSDT', 'HYPERUSDT', 'MILKUSDT', 'OBOLUSDT', 'UNIUSDT', 'DEEPUSDT', 'ALPINEUSDT', 'WALUSDT', 'FORTHUSDT', 'SKATEUSDT', 'PROMPTUSDT', 'GUNUSDT', 'BABYUSDT', 'STOUSDT', 'FISUSDT', 'ASRUSDT', 'MLNUSDT', 'TANSSIUSDT', 'AIOTUSDT', 'SKYAIUSDT'],\n  percentageThreshold: 5,\n  candleCount: 10,\n  retraceCount: 5,\n  bollingerPeriod: 20,\n  bollingerStdDev: 2,\n  proximityThreshold: 0.02,\n  interval: '15m'\n};\n\nreturn [\n  {\n    json: {\n      config: CONFIG,\n      timestamp: new Date().toISOString()\n    }\n  }\n];"
+        "functionCode": "// Extract LearnDash course link from response\nconst response = $json;\n\nif (response && response.id) {\n  // Assuming your LearnDash course URL pattern\n  const learnDashLink = `https://courselamy.site/courses/${response.slug || response.id}/`;\n  \n  return [{\n    json: {\n      ...$input.all()[0].json,\n      learnDashLink: learnDashLink,\n      learnDashId: response.id,\n      learnDashSlug: response.slug\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    ...$input.all()[0].json,\n    learnDashLink: null,\n    learnDashId: null\n  }\n}];"
       },
-      "id": "a4ccd36d-23fa-4dc9-ab46-f205a9d858fe",
-      "name": "Strategy Configuration",
+      "id": "44cf26a2-bd6e-48e9-87be-491f0c3ce76a",
+      "name": "Extract LearnDash Link",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
       "position": [
-        -784,
-        48
+        2896,
+        1520
       ]
     },
     {
       "parameters": {
-        "functionCode": "const config = items[0].json.config;\nconst outputs = [];\n\nconfig.symbols.forEach((symbol, index) => {\n  outputs.push({\n    json: {\n      symbol: symbol,\n      config: config,\n      symbolIndex: index\n    }\n  });\n});\n\nreturn outputs;"
+        "url": "https://www.discudemy.com/feed/",
+        "responseFormat": "string",
+        "options": {}
       },
-      "id": "26b6409f-43e1-421f-9b82-41aa1e41586e",
-      "name": "Split Symbols",
+      "id": "8c63e886-ec0f-4cde-8c04-96b66f659589",
+      "name": "Fetch RSS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        976,
+        1312
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "e34577a1-70a3-4e6e-b3ed-418e969c86b4",
+      "name": "XML → JSON",
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        1312
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Access workflow static data in global scope\nconst seen = getWorkflowStaticData('global');\n\nconst courseId = $json.link;\n\nif (!seen.courses) {\n  seen.courses = [];\n}\n\nif (seen.courses.includes(courseId)) {\n  return [];\n}\n\nseen.courses.push(courseId);\n\nreturn [ { json: $json } ];"
+      },
+      "id": "926a2578-fdb9-455c-9d92-d2780324d0b4",
+      "name": "Filter Seen Courses1",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
       "position": [
-        -560,
-        48
+        1376,
+        1312
       ]
     },
     {
       "parameters": {
-        "url": "=https://fapi.binance.com/fapi/v1/klines",
-        "sendQuery": true,
-        "queryParameters": {
+        "functionCode": "const items = $json.rss.channel.item;\n\nreturn items.map(course => {\n  const link = String(course.link || \"\");\n  // strip origin\n  const slug = link.replace(/^https?:\\/\\/www\\.discudemy\\.com\\//, \"\").replace(/^\\/+/, \"\");\n  // last part after category\n  const lastPart = slug.split(\"/\").filter(Boolean).pop();\n  const goLink = `https://www.discudemy.com/go/${lastPart}`;\n\n  return {\n    json: {\n      ...course,\n      goLink\n    }\n  };\n});"
+      },
+      "id": "b04f8b0d-d795-481d-84ba-6de9097838b5",
+      "name": "Build Go Link1",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        1312
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$json.goLink}}",
+        "options": {}
+      },
+      "id": "15316269-5778-4a0a-81ff-3c32c4761687",
+      "name": "Fetch Go Page1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1584,
+        1632
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "const items = $items(\"Fetch Go Page1\");\n\nreturn items.map((item, index) => {\n  const html = item.json.data;\n\n  const regex = /https:\\/\\/www\\.udemy\\.com\\/course\\/[^\\s\"'<>?]+[^\"'<>]*/g;\n  const match = html.match(regex);\n\n  return {\n    json: {\n      index,\n      udemyLink: match ? match[0] : null\n    }\n  };\n});"
+      },
+      "id": "c0df3bd3-69b0-44b4-94ec-800e361765ec",
+      "name": "Extract Udemy Link1",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        1632
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "id": "dbcbc318-3871-414f-99a2-209688b2cf88",
+      "name": "Merge Course + Udemy",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        2064,
+        1520
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://courselamy.site/wp-json/ldlms/v1/sfwd-courses",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "bodyParameters": {
           "parameters": [
-            {}
+            {
+              "name": "title",
+              "value": "={{ $json.title.replace(/^\\[100% OFF\\]\\s*/, \"\") }}"
+            },
+            {
+              "name": "content",
+              "value": "={{ $json.description.replace(/<p><a rel=\"nofollow\" href=\"[^\"]+\">\\[100% OFF\\][^<]+<\\/a><\\/p>\\s*\\s*/, \"\") + '<br/><br/><strong>Enrol for Course:</strong> <a href=\"' + $json.udemyLink + '\" target=\"_blank\">' + $json.udemyLink + '</a>' }}"
+            },
+            {
+              "name": "status",
+              "value": "publish"
+            }
           ]
         },
         "options": {}
       },
-      "id": "3ae45f6d-a276-4cff-9b59-5faa022c218e",
-      "name": "Fetch Binance Klines",
+      "name": "Create LearnDash Course",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
+      "typeVersion": 3,
       "position": [
-        -336,
-        48
+        2608,
+        1520
+      ],
+      "id": "94862cd1-56cb-403c-a891-6747b510791b",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "GJ1o59YzAiqhpAMR",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        1008,
+        -48
+      ],
+      "id": "534d343f-44aa-4f2f-b527-ec0b29331123",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "chatId": "@free_courses247",
+        "text": "=`🎓 *New Course Posted!* 🎓\\n\\n*Title:* ${$json.title.replace(/^\\\\[100% OFF\\\\]\\\\s*/, \"\")}\\n*Course Link:* ${$json.learnDashLink || 'https://courselamy.site/courses/'}\\n\\n*Description:* ${$json.description.replace(/<[^>]*>/g, '').substring(0, 200)}...`",
+        "additionalFields": {
+          "disable_web_page_preview": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "a58582e2-57b6-4e16-930c-ba9babe337bd",
+      "name": "Send to Telegram Channel",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        3264,
+        1744
+      ],
+      "webhookId": "5007e668-fa2e-4837-b6a6-ccd241e9203a",
+      "credentials": {
+        "telegramApi": {
+          "id": "nn2SIXAArnS33U97",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ `🎓 New Course Available! 🎓\\n\\n${$json.title.replace(/^\\\\[100% OFF\\\\]\\\\s*/, \"\")}\\n\\n${$json.description.replace(/<[^>]*>/g, '').substring(0, 150)}...\\n\\nEnroll now: ${$json.learnDashLink || 'https://courselamy.site/courses/'}\\n\\n#OnlineCourse #Learning #Education` }}",
+        "additionalFields": {}
+      },
+      "id": "77af4ec4-1e13-42d2-a026-7d780917bbb9",
+      "name": "Post to Twitter",
+      "type": "n8n-nodes-base.twitter",
+      "typeVersion": 1,
+      "position": [
+        3264,
+        1520
       ]
     },
     {
       "parameters": {
-        "functionCode": "const symbol = items[0].json.symbol;\nconst config = items[0].json.config;\nconst klines = items[0].json;\n\nif (!Array.isArray(klines) || klines.length === 0) {\n  return [{\n    json: {\n      symbol: symbol,\n      error: 'No klines data available',\n      timestamp: new Date().toISOString()\n    }\n  }];\n}\n\nconst candles = klines.map(k => ({\n  time: k[0],\n  open: parseFloat(k[1]),\n  high: parseFloat(k[2]),\n  low: parseFloat(k[3]),\n  close: parseFloat(k[4]),\n  volume: parseFloat(k[5])\n})).reverse();\n\nfunction calculateBollingerBands(closes, period = 20, stdDev = 2) {\n  if (closes.length < period) return null;\n  \n  const relevantCloses = closes.slice(-period);\n  const mean = relevantCloses.reduce((sum, close) => sum + close, 0) / period;\n  \n  const variance = relevantCloses.reduce((sum, close) => sum + Math.pow(close - mean, 2), 0) / period;\n  const standardDeviation = Math.sqrt(variance);\n  \n  return {\n    upper: mean + (standardDeviation * stdDev),\n    middle: mean,\n    lower: mean - (standardDeviation * stdDev)\n  };\n}\n\nconst candlesWithBB = candles.map((candle, index) => {\n  const closes = candles.slice(0, index + 1).map(c => c.close);\n  const bb = calculateBollingerBands(closes, config.bollingerPeriod, config.bollingerStdDev);\n  \n  return {\n    ...candle,\n    bb: bb,\n    isGreen: candle.close > candle.open,\n    isRed: candle.close < candle.open,\n    percentChange: ((candle.close - candle.open) / candle.open) * 100\n  };\n}).filter(c => c.bb !== null);\n\nif (candlesWithBB.length < config.candleCount + config.retraceCount) {\n  return [{\n    json: {\n      symbol: symbol,\n      error: 'Insufficient data for analysis',\n      timestamp: new Date().toISOString()\n    }\n  }];\n}\n\nconst recentCandles = candlesWithBB.slice(0, config.candleCount + config.retraceCount);\nconst initialCandles = recentCandles.slice(config.retraceCount);\nconst retraceCandles = recentCandles.slice(0, config.retraceCount);\nconst currentCandle = candlesWithBB[0];\n\nlet strongUpMove = false;\nlet strongDownMove = false;\nlet initialDirection = null;\n\nconst initialStart = initialCandles[initialCandles.length - 1].close;\nconst initialEnd = initialCandles[0].close;\nconst totalMovement = ((initialEnd - initialStart) / initialStart) * 100;\n\nif (Math.abs(totalMovement) >= config.percentageThreshold) {\n  if (totalMovement > 0) {\n    strongUpMove = true;\n    initialDirection = 'up';\n  } else {\n    strongDownMove = true;\n    initialDirection = 'down';\n  }\n}\n\nlet hasRetraced = false;\nlet retraceDirection = null;\n\nif (strongUpMove || strongDownMove) {\n  const retraceStart = retraceCandles[retraceCandles.length - 1].close;\n  const retraceEnd = retraceCandles[0].close;\n  const retraceMovement = ((retraceEnd - retraceStart) / retraceStart) * 100;\n  \n  if (strongUpMove && retraceMovement < -2) {\n    hasRetraced = true;\n    retraceDirection = 'down';\n  } else if (strongDownMove && retraceMovement > 2) {\n    hasRetraced = true;\n    retraceDirection = 'up';\n  }\n}\n\nconst currentPrice = currentCandle.close;\nconst currentMiddleBB = currentCandle.bb.middle;\nconst distanceFromMiddleBB = Math.abs(currentPrice - currentMiddleBB) / currentMiddleBB;\nconst nearMiddleBB = distanceFromMiddleBB <= config.proximityThreshold;\n\nlet signal = null;\nlet signalStrength = 0;\n\nif ((strongUpMove || strongDownMove) && hasRetraced && nearMiddleBB) {\n  if (strongUpMove) {\n    signal = 'BUY';\n    signalStrength = Math.abs(totalMovement) * (1 - distanceFromMiddleBB);\n  } else {\n    signal = 'SELL';\n    signalStrength = Math.abs(totalMovement) * (1 - distanceFromMiddleBB);\n  }\n}\n\nreturn [{\n  json: {\n    symbol: symbol,\n    signal: signal,\n    signalStrength: signalStrength,\n    analysis: {\n      initialDirection: initialDirection,\n      totalMovement: totalMovement.toFixed(2),\n      hasRetraced: hasRetraced,\n      retraceDirection: retraceDirection,\n      nearMiddleBB: nearMiddleBB,\n      distanceFromMiddleBB: (distanceFromMiddleBB * 100).toFixed(2),\n      currentPrice: currentPrice,\n      middleBB: currentMiddleBB.toFixed(4),\n      upperBB: currentCandle.bb.upper.toFixed(4),\n      lowerBB: currentCandle.bb.lower.toFixed(4)\n    },\n    candleData: {\n      totalCandles: candlesWithBB.length,\n      initialCandles: initialCandles.length,\n      retraceCandles: retraceCandles.length\n    },\n    timestamp: new Date().toISOString(),\n    config: config\n  }\n}];"
+        "documentId": {
+          "__rl": true,
+          "value": "1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "options": {}
       },
-      "id": "331e8c9b-de7e-4dd4-b346-9c9a449029a1",
-      "name": "Analyze Bollinger Strategy",
+      "id": "e55da0e5-8665-40ff-9a0f-914bbedcdffd",
+      "name": "Read Courses from Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1280,
+        -48
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6A2XF4qDywhaZUBb",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Get first X courses (e.g., first 10 courses)\nconst items = $input.all();\nconst maxCourses = 10; // Change this number as needed\n\nreturn items.slice(0, maxCourses).map(item => {\n  const json = item.json;\n  \n  return {\n    json: {\n      ...json,\n      goLink: json.goLink,\n      courseId: json.guid || json.link || json.title,\n      needsImageExtraction: true\n    }\n  };\n});"
+      },
+      "id": "e1dfe2a7-5f6f-44b4-852d-53c361073e90",
+      "name": "Limit to First X Courses",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
       "position": [
-        -128,
-        48
+        1488,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.goLink }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "cbd43e9f-9ea6-423a-8d8e-394b56987b46",
+      "name": "Fetch Discudemy Go Link Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1680,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract Udemy image URL from Discudemy page HTML\nconst items = $input.all();\n\nreturn items.map(item => {\n  const courseData = item.json;\n  const html = item.json.data || ''; // HTML from the HTTP request\n  \n  let udemyImageUrl = null;\n  \n  // Pattern 1: Look for Udemy CDN images directly\n  const udemyCdnPatterns = [\n    /https:\\/\\/img-c\\.udemycdn\\.com\\/course\\/[^\"'\\s>]+/gi,\n    /https:\\/\\/img-b\\.udemycdn\\.com\\/course\\/[^\"'\\s>]+/gi,\n    /https:\\/\\/udemy-images\\.udemy-com\\/course\\/[^\"'\\s>]+/gi\n  ];\n  \n  // Pattern 2: Look for og:image meta tag with Udemy image\n  const metaPatterns = [\n    /<meta[^>]*property=\"og:image\"[^>]*content=\"([^\"]*udemy[^\"]+)\"/gi,\n    /<meta[^>]*name=\"twitter:image\"[^>]*content=\"([^\"]*udemy[^\"]+)\"/gi\n  ];\n  \n  // Pattern 3: Look for data-src or src attributes with Udemy images\n  const imgPatterns = [\n    /<img[^>]*src=\"([^\"]*udemy[^\"]*\\.(jpg|jpeg|png|webp))\"[^>]*>/gi,\n    /<img[^>]*data-src=\"([^\"]*udemy[^\"]*\\.(jpg|jpeg|png|webp))\"[^>]*>/gi,\n    /<img[^>]*data-lazy=\"([^\"]*udemy[^\"]*\\.(jpg|jpeg|png|webp))\"[^>]*>/gi\n  ];\n  \n  // Try Udemy CDN patterns first (most reliable)\n  for (const pattern of udemyCdnPatterns) {\n    const matches = [...html.matchAll(pattern)];\n    if (matches.length > 0) {\n      udemyImageUrl = matches[0][0];\n      break;\n    }\n  }\n  \n  // Try meta tags\n  if (!udemyImageUrl) {\n    for (const pattern of metaPatterns) {\n      const matches = [...html.matchAll(pattern)];\n      if (matches.length > 0) {\n        udemyImageUrl = matches[0][1];\n        break;\n      }\n    }\n  }\n  \n  // Try image tags\n  if (!udemyImageUrl) {\n    for (const pattern of imgPatterns) {\n      const matches = [...html.matchAll(pattern)];\n      if (matches.length > 0) {\n        udemyImageUrl = matches[0][1];\n        break;\n      }\n    }\n  }\n  \n  // If we found a Udemy image, ensure it's the high-quality version\n  if (udemyImageUrl) {\n    // Replace low-quality versions with high-quality ones\n    udemyImageUrl = udemyImageUrl\n      .replace(/_[0-9]+x[0-9]+\\./, '_480x270.') // Ensure 480x270 resolution\n      .replace(/\\/240x135\\//, '/480x270/') // Replace low-res path\n      .replace(/\\/750x422\\//, '/480x270/'); // Replace other resolutions\n  }\n  \n  return {\n    json: {\n      ...courseData,\n      extractedUdemyImageUrl: udemyImageUrl,\n      hasUdemyImage: !!udemyImageUrl,\n      imageSource: udemyImageUrl ? 'udemy_cdn' : 'not_found',\n      discudemyPageHtml: html.substring(0, 500) + '...' // Store snippet for debugging\n    }\n  };\n});"
+      },
+      "id": "a624a232-cce4-426c-a490-6c65e83f7fc2",
+      "name": "Extract Udemy Image URL",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1888,
+        -48
       ]
     },
     {
       "parameters": {
         "conditions": {
-          "string": [
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
             {
-              "value1": "={{ $json.signal }}",
-              "operation": "isNotEmpty"
+              "id": "1",
+              "leftValue": "={{ $json.hasUdemyImage }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
             }
-          ]
-        }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
       },
-      "id": "d3c07013-15d3-4f8a-9f59-3b27e89addc8",
-      "name": "Filter Valid Signals",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
+      "id": "1d972759-dca3-4b9b-bb96-de435d4ce944",
+      "name": "Filter Courses with Udemy Images",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
       "position": [
-        80,
-        -160
+        2112,
+        -48
       ]
     },
     {
       "parameters": {
-        "functionCode": "const data = items[0].json;\n\nconst message = `🚨 BOLLINGER RETRACEMENT SIGNAL 🚨\\n\\n` +\n  `Symbol: ${data.symbol}\\n` +\n  `Signal: ${data.signal}\\n` +\n  `Signal Strength: ${data.signalStrength.toFixed(2)}\\n\\n` +\n  `Analysis:\\n` +\n  `• Initial Movement: ${data.analysis.totalMovement}% ${data.analysis.initialDirection}\\n` +\n  `• Has Retraced: ${data.analysis.hasRetraced} (${data.analysis.retraceDirection})\\n` +\n  `• Near Middle BB: ${data.analysis.nearMiddleBB}\\n` +\n  `• Distance from Middle BB: ${data.analysis.distanceFromMiddleBB}%\\n\\n` +\n  `Current Prices:\\n` +\n  `• Current Price: $${data.analysis.currentPrice}\\n` +\n  `• Upper BB: $${data.analysis.upperBB}\\n` +\n  `• Middle BB: $${data.analysis.middleBB}\\n` +\n  `• Lower BB: $${data.analysis.lowerBB}\\n\\n` +\n  `Strategy: Price expected to continue ${data.analysis.initialDirection}ward after BB retracement\\n` +\n  `Time: ${data.timestamp}`;\n\nreturn [\n  {\n    json: {\n      message: message,\n      symbol: data.symbol,\n      signal: data.signal,\n      signalStrength: data.signalStrength,\n      analysis: data.analysis,\n      timestamp: data.timestamp\n    }\n  }\n];"
+        "url": "={{ $json.extractedUdemyImageUrl }}",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          },
+          "timeout": 30000
+        }
       },
-      "id": "8c399623-b105-4548-8762-e3670991db75",
-      "name": "Format Notification",
+      "id": "48230b5d-6054-4fc0-9fc5-4192173c13ba",
+      "name": "Download Udemy Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2368,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process downloaded Udemy image and prepare for storage\nconst items = $input.all();\n\nreturn items.map(item => {\n  const courseData = item.json;\n  const imageData = item.binary;\n  \n  // Get the binary data key (it's dynamic)\n  const binaryKey = Object.keys(imageData)[0];\n  \n  // Create a safe filename using course title\n  const courseTitle = courseData.title ? \n    courseData.title.replace(/^\\[100% OFF\\]\\s*/, '') // Remove [100% OFF] prefix\n      .replace(/[^a-zA-Z0-9\\s]/g, '') // Remove special characters\n      .replace(/\\s+/g, '_') // Replace spaces with underscores\n      .substring(0, 40) : \n    'udemy_course';\n  \n  const timestamp = new Date().getTime();\n  const filename = `${courseTitle}_${timestamp}.jpg`;\n  \n  return {\n    json: {\n      ...courseData,\n      downloadedImage: true,\n      localImagePath: `/course_images/${filename}`,\n      imageFilename: filename,\n      imageSize: imageData[binaryKey].data.length,\n      imageType: imageData[binaryKey].mimeType\n    },\n    binary: {\n      [binaryKey]: {\n        ...imageData[binaryKey],\n        fileName: filename\n      }\n    }\n  };\n});"
+      },
+      "id": "b5a77d51-6345-4bd8-8c93-a14dd70d4889",
+      "name": "Process Udemy Image",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
       "position": [
-        320,
-        -32
+        2624,
+        -48
       ]
     },
     {
       "parameters": {
-        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
-        "text": "={{ $json.message }}",
-        "additionalFields": {
-          "parse_mode": "Markdown"
-        }
+        "fileName": "={{ $json.imageFilename }}",
+        "options": {}
       },
-      "id": "6cef7380-81b1-4a04-a1d5-5e49f2fad038",
-      "name": "Send Telegram Alert",
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.1,
+      "id": "65475daf-146d-452e-b4ce-efe5de6c6633",
+      "name": "Save Udemy Image to Local Storage",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
       "position": [
-        544,
-        -32
+        2880,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0",
+          "mode": "id"
+        },
+        "sheetName": "Sheet1",
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "title"
+          ],
+          "schema": [
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "localImagePath",
+              "displayName": "localImagePath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "extractedUdemyImageUrl",
+              "displayName": "extractedUdemyImageUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "downloadedImage",
+              "displayName": "downloadedImage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "imageFilename",
+              "displayName": "imageFilename",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "3bc43938-a2b2-4a96-82f9-2c28dd598670",
+      "name": "Update Google Sheets with Udemy Image Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        3136,
+        -48
       ],
-      "webhookId": "f230b340-f4ad-4c64-8ba7-f42c55894a45"
-    },
-    {
-      "parameters": {
-        "functionCode": "const data = items[0].json;\n\nconst logEntry = {\n  timestamp: data.timestamp,\n  symbol: data.symbol,\n  signal: data.signal,\n  signalStrength: data.signalStrength,\n  analysis: data.analysis,\n  action: 'signal_generated'\n};\n\nconsole.log('BOLLINGER STRATEGY LOG:', JSON.stringify(logEntry, null, 2));\n\nreturn [\n  {\n    json: logEntry\n  }\n];"
-      },
-      "id": "6c460432-e5a9-48b2-8fb1-1dffaa349bfe",
-      "name": "Log Analysis Results",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        320,
-        256
-      ]
-    },
-    {
-      "parameters": {
-        "functionCode": "const data = items[0].json;\n\nif (!data.signal) {\n  console.log(`${data.symbol}: No signal - Initial: ${data.analysis.initialDirection} ${data.analysis.totalMovement}%, Retraced: ${data.analysis.hasRetraced}, Near BB: ${data.analysis.nearMiddleBB}`);\n}\n\nreturn items;"
-      },
-      "id": "994a0794-006d-4302-8e49-43cf3e39ff37",
-      "name": "Debug Output",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        -48,
-        288
-      ]
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6A2XF4qDywhaZUBb",
+          "name": "Google Sheets account"
+        }
+      }
     }
   ],
-  "connections": {},
+  "connections": {
+    "Filter Valid Courses": {
+      "main": [
+        [
+          {
+            "node": "Create LearnDash Course",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract LearnDash Link": {
+      "main": [
+        [
+          {
+            "node": "Send to Telegram Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch RSS": {
+      "main": [
+        [
+          {
+            "node": "XML → JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML → JSON": {
+      "main": [
+        [
+          {
+            "node": "Filter Seen Courses1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Seen Courses1": {
+      "main": [
+        [
+          {
+            "node": "Build Go Link1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Go Link1": {
+      "main": [
+        [
+          {
+            "node": "Fetch Go Page1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Course + Udemy",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Go Page1": {
+      "main": [
+        [
+          {
+            "node": "Extract Udemy Link1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Udemy Link1": {
+      "main": [
+        [
+          {
+            "node": "Merge Course + Udemy",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Course + Udemy": {
+      "main": [
+        [
+          {
+            "node": "Filter Valid Courses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create LearnDash Course": {
+      "main": [
+        [
+          {
+            "node": "Extract LearnDash Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read Courses from Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Courses from Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Limit to First X Courses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit to First X Courses": {
+      "main": [
+        [
+          {
+            "node": "Fetch Discudemy Go Link Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Discudemy Go Link Page": {
+      "main": [
+        [
+          {
+            "node": "Extract Udemy Image URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Udemy Image URL": {
+      "main": [
+        [
+          {
+            "node": "Filter Courses with Udemy Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Courses with Udemy Images": {
+      "main": [
+        [
+          {
+            "node": "Download Udemy Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Udemy Image": {
+      "main": [
+        [
+          {
+            "node": "Process Udemy Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Udemy Image": {
+      "main": [
+        [
+          {
+            "node": "Save Udemy Image to Local Storage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Udemy Image to Local Storage": {
+      "main": [
+        [
+          {
+            "node": "Update Google Sheets with Udemy Image Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
   "settings": {
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "pinData": {},
-  "versionId": "921bff53-e2c8-4a4b-9212-5d0976d25089",
+  "versionId": "357d6527-ec5d-4ade-a2af-8db25474e00e",
   "triggerCount": 0,
   "shared": [
     {
-      "createdAt": "2025-08-23T22:46:32.058Z",
-      "updatedAt": "2025-08-23T22:46:32.058Z",
+      "createdAt": "2025-08-21T04:33:18.334Z",
+      "updatedAt": "2025-08-21T04:33:18.334Z",
       "role": "workflow:owner",
-      "workflowId": "SupOl9rOlZ62N5lV",
+      "workflowId": "bdrExoo4slDJcQ9o",
       "projectId": "X54hljIRMdcuCgG9"
     }
   ],
-  "tags": [
-    {
-      "createdAt": "2025-08-23T22:43:38.492Z",
-      "updatedAt": "2025-08-23T22:43:38.492Z",
-      "id": "fOqY3qvMrxFZ1H7o",
-      "name": "Trading Strategy"
-    }
-  ]
+  "tags": []
 }
