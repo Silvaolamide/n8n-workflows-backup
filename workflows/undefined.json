@@ -1,299 +1,187 @@
 {
-  "createdAt": "2025-11-17T20:09:09.054Z",
-  "updatedAt": "2025-12-06T18:30:44.000Z",
-  "id": "Ds9wwXq6bSEfxV06",
-  "name": "Backup-Github",
-  "active": true,
+  "createdAt": "2025-08-21T03:43:19.048Z",
+  "updatedAt": "2025-10-11T06:37:04.000Z",
+  "id": "OS1uzjjqwkm8WaCk",
+  "name": "Minta",
+  "active": false,
   "isArchived": false,
   "nodes": [
-    {
-      "parameters": {
-        "fromEmail": "silvaolamide@gmail.com",
-        "toEmail": "silvaolamide@gmail.com",
-        "subject": "✅ n8n Workflows Backed Up Successfully",
-        "options": {}
-      },
-      "id": "7d0bbb11-3f34-4ce1-bf48-348ffb14a014",
-      "name": "Send Success Email",
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
-      "position": [
-        128,
-        80
-      ],
-      "webhookId": "eb707b54-35ab-48bc-935c-e5dbfe749698",
-      "credentials": {
-        "smtp": {
-          "id": "RtmyZar0xKQayG09",
-          "name": "SMTP account"
-        }
-      }
-    },
     {
       "parameters": {
         "rule": {
           "interval": [
             {
-              "field": "cronExpression",
-              "expression": "0 2 * * *"
+              "field": "minutes",
+              "minutesInterval": 15
             }
           ]
         }
       },
-      "id": "a08e383d-1279-4959-97b1-b0fb9497361f",
+      "id": "735bd6b5-594c-4dda-9c6e-450e090f3db9",
       "name": "Schedule Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
+      "typeVersion": 1,
       "position": [
-        -1680,
-        80
+        -2960,
+        -304
       ]
     },
     {
       "parameters": {
-        "url": "https://ce9aec0c4f47.ngrok-free.app/api/v1/workflows",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "options": {}
+        "jsCode": "// Token list from your strategy\nconst tokens = [\n  \"ALPINEUSDT\"\n];\n\n// For each token, create a proper prompt for the AI agent\nconst items = tokens.map(symbol => ({\n  json: { \n    chatInput: `Analyze trading patterns for ${symbol}. The most important thing about your analysis is to find candle and price patterns that result in a predictable price movement. Detect these specific patterns:\n\n**PRIORITY PATTERNS TO DETECT:**\n\n1. LARGE CANDLE PATTERN\n   - Detect when current candle body is 2x or more the average body size of last 20 candles\n   - Indicate direction (bullish/bearish)\n   - Check if this occurs at support/resistance levels\n\n2. THREE CONSECUTIVE SMALL CANDLES (Same Direction)\n   - Find 3 consecutive candles with bodies < 0.5x average\n   - All moving in same direction (all green or all red)\n   - This indicates continuation potential\n\n3. REVERSAL SETUP PATTERN\n   - Find: 3 small consecutive candles THEN a reversal candle\n   - Reversal candle must:\n     * NOT be the current/most recent candle\n     * Have very small or NO wick in reversal direction (< 10% of body)\n     * Body size > 1.5x average\n   - High probability reversal signal\n4. LOWER HIGHS AND HIGHER LOWS\n  - Analyze the last 20 candles for recurring sequences\n  - Confirm with pattern detection on several timelines\n5. RECURRING PATTERN DISCOVERY\n   - Analyze last 100 candles for recurring sequences\n   - Look for patterns that preceded significant moves (>2% in next 5 candles)\n   - Document any pattern that occurs 3+ times with similar outcomes\n\n**ANALYSIS REQUIREMENTS:**\n- Calculate average candle body size (last 20 candles)\n- Check patterns across all timeframes (1m, 15m, 1h)\n- Provide confidence based on multi-timeframe confirmation\n- Include exact candle measurements and ratios\n\n**OUTPUT FORMAT:**\nProvide:\n- Pattern(s) detected (with specific measurements)\n- BUY/SELL/HOLD recommendation\n- Confidence level (0-100%)\n- Entry price, Stop Loss, Take Profit levels\n- Risk/Reward ratio\n\nSymbol: ${symbol}\nAnalysis Time: ${new Date().toISOString()}`,\n    symbol: symbol,\n    timestamp: new Date().toISOString(),\n    batchId: Date.now().toString()\n  }\n}));\n\nreturn items;"
       },
-      "id": "820fcac6-34f5-44da-9b65-16d26b6838ea",
-      "name": "Get All Workflows",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "id": "a895b0a6-7774-42a8-a4f2-ba7f33c697f8",
+      "name": "Generate Trading Analysis Prompts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        -1488,
-        80
+        -2592,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=<role>\nYou are an Expert Quantitative Trading Pattern Detection AI specializing in candlestick pattern recognition and algorithmic trading signals.\n</role>\n\n<instructions>\n<goal>\nDetect specific candlestick patterns with mathematical precision and provide actionable trading signals based on pattern confirmation across multiple timeframes.\n</goal>\n\n<pattern_detection_algorithms>\n\n### 1. LARGE CANDLE DETECTION\n```\nAlgorithm:\n1. Calculate body_size = |close - open| for each candle\n2. Calculate avg_body = average(last 20 bodies)\n3. IF current_body >= 2.0 * avg_body:\n   - PATTERN FOUND: \"Large Candle\"\n   - Direction: \"Bullish\" if close > open, else \"Bearish\"\n   - Strength: current_body / avg_body ratio\n```\n\n### 2. THREE SMALL CONSECUTIVE CANDLES\n```\nAlgorithm:\n1. Get last 3 completed candles (NOT current)\n2. Calculate avg_body (last 20 candles)\n3. FOR each of 3 candles:\n   - body_size < 0.5 * avg_body (small body)\n4. Check all 3 same direction:\n   - All green (close > open) OR all red (close < open)\n5. IF conditions met:\n   - PATTERN FOUND: \"3 Small Consecutive\"\n   - Direction indicates continuation\n```\n\n### 3. REVERSAL SETUP PATTERN\n```\nAlgorithm:\n1. Identify: candles[n-3], [n-2], [n-1], [n]\n2. Check candles[n-3] to [n-1]: 3 small same direction\n3. Check candle[n] (NOT current candle [0]):\n   - Opposite direction to previous 3\n   - body_size > 1.5 * avg_body\n   - Wick in reversal direction < 10% of body\n     (if bullish reversal: lower_wick < 0.1 * body)\n     (if bearish reversal: upper_wick < 0.1 * body)\n4. IF all conditions met:\n   - PATTERN FOUND: \"Reversal Setup\"\n   - High confidence reversal signal\n```\n\n### 4. PATTERN DISCOVERY ENGINE\n```\nAlgorithm:\n1. Scan last 100 candles for any sequence\n2. For each sequence of 3-5 candles:\n   - Record pattern signature\n   - Measure price movement in next 5 candles\n3. Track patterns that preceded moves > 2%\n4. IF pattern occurs 3+ times with similar outcome:\n   - PATTERN FOUND: \"Recurring Pattern X\"\n   - Document pattern and success rate\n```\n\n</pattern_detection_algorithms>\n\n<analysis_framework>\n\n### Data Processing\n1. Fetch kline data from all 3 tools (1m, 15m, 1h)\n2. Parse each candle: [timestamp, open, high, low, close, volume, ...]\n3. Calculate metrics:\n   - Body size = |close - open|\n   - Upper wick = high - max(open, close)\n   - Lower wick = min(open, close) - low\n   - Average body (rolling 20 periods)\n\n### Multi-Timeframe Confirmation\n- Pattern on 1m + 15m = Moderate confidence\n- Pattern on 15m + 1h = High confidence  \n- Pattern on all 3 timeframes = Very high confidence\n\n### Risk Management Calculations\n- Stop Loss: Below/above recent swing low/high\n- Take Profit: 2:1 or 3:1 Risk/Reward ratio\n- Position Size: Based on confidence level\n\n</analysis_framework>\n\n<output_format>\n**🎯 PATTERN ANALYSIS: {{ $json.symbol }}**\n\n**📊 PATTERNS DETECTED:**\n[List each pattern found with exact measurements]\nExample:\n- Large Candle: Body 2.3x average, Bullish, on 15m timeframe\n- 3 Small Consecutive: Detected at candles 45-47, Bearish direction\n\n**🔔 TRADING SIGNAL:** [BUY / SELL / HOLD]\n\n**💯 CONFIDENCE LEVEL:** [X]%\nBased on: [multi-timeframe confirmation details]\n\n**📍 KEY LEVELS:**\n- Entry: $[price]\n- Stop Loss: $[price] ([X]% risk)\n- Take Profit 1: $[price] ([X]% gain)\n- Take Profit 2: $[price] ([X]% gain)\n- Risk/Reward: [ratio]\n\n**⚠️ RISK ASSESSMENT:**\n[Brief risk analysis]\n\n**⏰ Analysis Time:** {{ $now }}\n\n---\n⚠️ **DISCLAIMER:** Trading involves substantial risk. This is algorithmic analysis, not financial advice.\n</output_format>\n\n</instructions>\n\n<critical_rules>\n- ALWAYS analyze ALL timeframes before concluding\n- NEVER recommend trades based on incomplete data\n- ALWAYS calculate exact measurements (ratios, percentages)\n- ALWAYS exclude current candle from reversal pattern detection\n- PROVIDE specific entry/exit levels, never vague suggestions\n- ALWAYS include a numeric confidence value between 0-100 in your response\n- FORMAT confidence as \"CONFIDENCE LEVEL: XX%\" or \"Confidence: XX%\"\n</critical_rules>"
+        }
+      },
+      "id": "462f06cd-409d-4b68-8173-b80bb20746c6",
+      "name": "Trading Pattern Analyzer AI",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -2144,
+        -304
       ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "id": "12f187bc-908d-4821-a6b4-eecbb53d85a9",
+      "name": "Connect Gemini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        -2496,
+        144
+      ],
+      "typeVersion": 1,
+      "notesInFlow": false,
       "credentials": {
-        "httpHeaderAuth": {
-          "id": "yiCo7Ak6GQrIfEVP",
-          "name": "X-N8N-API-KEY"
+        "googlePalmApi": {
+          "id": "uHer33oRvwLCaoHw",
+          "name": "Google Gemini(PaLM) Api account"
         }
       }
     },
     {
       "parameters": {
-        "fieldToSplitOut": "data",
+        "url": "=https://fapi.binance.com/fapi/v1/klines?symbol={{ $json.symbol }}&interval=1m&limit=100",
         "options": {}
       },
-      "id": "5fdec3d8-84aa-432e-9781-a9b42b0596e6",
-      "name": "Split Into Items",
-      "type": "n8n-nodes-base.splitOut",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
       "position": [
-        -1280,
-        80
-      ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "a1",
-              "name": "workflowJson",
-              "value": "={{ JSON.stringify($json, null, 2) }}",
-              "type": "string"
-            },
-            {
-              "id": "a2",
-              "name": "workflowName",
-              "value": "={{ $json.name.replace(/[^a-z0-9]/gi, '-').toLowerCase() }}",
-              "type": "string"
-            },
-            {
-              "id": "a3",
-              "name": "filename",
-              "value": "={{ $json.workflowName + '.json' }}",
-              "type": "string"
-            },
-            {
-              "id": "a4",
-              "name": "timestamp",
-              "value": "={{ $now.toISO() }}",
-              "type": "string"
-            },
-            {
-              "id": "a5",
-              "name": "workflowId",
-              "value": "={{ $json.id }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "71a26ab7-dc44-44d4-bc6f-70588e2ab6bf",
-      "name": "Prepare Individual Workflow",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.3,
-      "position": [
-        -1088,
-        80
-      ]
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "operation": "get",
-        "owner": {
-          "__rl": true,
-          "value": "Silvaolamide",
-          "mode": "name"
-        },
-        "repository": {
-          "__rl": true,
-          "value": "n8n-workflows-backup",
-          "mode": "name"
-        },
-        "filePath": "={{ 'workflows/' + $json.filename }}",
-        "additionalParameters": {}
-      },
-      "id": "8bca177c-99d0-4586-af71-f573a6292e98",
-      "name": "Check If File Exists",
-      "type": "n8n-nodes-base.github",
-      "typeVersion": 1.1,
-      "position": [
-        -880,
-        80
+        -2192,
+        176
       ],
-      "webhookId": "ff34150e-c863-4727-97fd-364440f5b610",
-      "credentials": {
-        "githubApi": {
-          "id": "UPdIohV1bl8fDXlH",
-          "name": "GitHub account"
+      "id": "d4183aaa-5d74-4473-9dc0-7c1a03ab258b",
+      "name": "Get 1min Price Data"
+    },
+    {
+      "parameters": {
+        "url": "=https://fapi.binance.com/fapi/v1/klines?symbol={{ $json.symbol }}&interval=15m&limit=100",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -2000,
+        176
+      ],
+      "id": "24837487-7545-46e4-8279-e5ae1df1d689",
+      "name": "Get 15min Price Data"
+    },
+    {
+      "parameters": {
+        "url": "=https://fapi.binance.com/fapi/v1/klines?symbol={{ $json.symbol }}&interval=1h&limit=100",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -1808,
+        176
+      ],
+      "id": "eeb4a305-7105-42a2-a589-f30a225bb08f",
+      "name": "Get 1hr Price Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract confidence level from AI response and filter\nconst items = $input.all();\nconst filtered = [];\n\nfor (const item of items) {\n  const output = item.json.output || '';\n  const symbol = item.json.symbol || 'UNKNOWN';\n  \n  // Try to extract confidence level from various formats\n  let confidence = 0;\n  \n  // Match patterns like \"Confidence: 85%\" or \"CONFIDENCE LEVEL: 85%\"\n  const confMatch = output.match(/confidence[:\\s]+([0-9]+)%/i);\n  if (confMatch) {\n    confidence = parseInt(confMatch[1]);\n  }\n  \n  // Extract trading signal\n  let signal = 'HOLD';\n  if (output.match(/TRADING SIGNAL[:\\s]+BUY/i) || output.match(/Signal[:\\s]+BUY/i)) {\n    signal = 'BUY';\n  } else if (output.match(/TRADING SIGNAL[:\\s]+SELL/i) || output.match(/Signal[:\\s]+SELL/i)) {\n    signal = 'SELL';\n  }\n  \n  // Filter: Only keep BUY/SELL signals with confidence >= 70%\n  if ((signal === 'BUY' || signal === 'SELL') && confidence >= 70) {\n    filtered.push({\n      json: {\n        symbol: symbol,\n        signal: signal,\n        confidence: confidence,\n        analysis: output,\n        timestamp: item.json.timestamp || new Date().toISOString(),\n        alertMessage: `🚨 HIGH CONFIDENCE SIGNAL 🚨\\n\\n` +\n                     `Symbol: ${symbol}\\n` +\n                     `Signal: ${signal}\\n` +\n                     `Confidence: ${confidence}%\\n\\n` +\n                     `${output.substring(0, 800)}${output.length > 800 ? '...' : ''}`\n      }\n    });\n  }\n}\n\nreturn filtered;"
+      },
+      "id": "be50354a-440c-43f1-954a-48569f609581",
+      "name": "Filter High Confidence Signals",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1664,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "=@traders_19",
+        "text": "={{ $json.alertMessage }}",
+        "additionalFields": {
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
         }
       },
-      "continueOnFail": true
+      "id": "c4e75202-305e-45bb-9e8f-e60e174ba687",
+      "name": "Send Telegram Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1232,
+        -320
+      ],
+      "webhookId": "970bfe00-981e-47b0-a820-129140b597a9",
+      "credentials": {
+        "telegramApi": {
+          "id": "StNGwGdy7t9NTE3a",
+          "name": "Minta_Telegram"
+        }
+      }
     },
     {
       "parameters": {
         "conditions": {
-          "string": [
+          "options": {
+            "caseSensitive": false
+          },
+          "conditions": [
             {
-              "value1": "={{ $json.error }}",
-              "operation": "isEmpty"
+              "leftValue": "={{ $json.signal }}",
+              "rightValue": "HOLD",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
             }
           ]
-        }
+        },
+        "options": {}
       },
-      "id": "758f64d7-5e81-40d8-990d-9ff4893d4adb",
-      "name": "Does File Exist?",
+      "id": "506d4fc8-5c66-4d4a-bdff-10113f8fabf2",
+      "name": "Check if Actionable Signal",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
+      "typeVersion": 2,
       "position": [
-        -672,
-        80
-      ]
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "operation": "edit",
-        "owner": {
-          "__rl": true,
-          "value": "Silvaolamide",
-          "mode": "name"
-        },
-        "repository": {
-          "__rl": true,
-          "value": "n8n-workflows-backup",
-          "mode": "name"
-        },
-        "filePath": "={{ 'workflows/' + $('Prepare Individual Workflow').item.json.filename }}",
-        "fileContent": "={{ $('Prepare Individual Workflow').item.json.workflowJson }}",
-        "commitMessage": "=Update: {{ $('Prepare Individual Workflow').item.json.workflowName }}"
-      },
-      "id": "71d696d5-60a3-4672-ad07-6ddc438c50b7",
-      "name": "Update Existing File",
-      "type": "n8n-nodes-base.github",
-      "typeVersion": 1.1,
-      "position": [
-        -480,
-        -32
-      ],
-      "webhookId": "0dd6dba6-3920-4373-8c53-778dfed53663",
-      "credentials": {
-        "githubApi": {
-          "id": "UPdIohV1bl8fDXlH",
-          "name": "GitHub account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "owner": {
-          "__rl": true,
-          "value": "Silvaolamide",
-          "mode": "name"
-        },
-        "repository": {
-          "__rl": true,
-          "value": "n8n-workflows-backup",
-          "mode": "name"
-        },
-        "filePath": "={{ 'workflows/' + $('Prepare Individual Workflow').item.json.filename }}",
-        "fileContent": "={{ $('Prepare Individual Workflow').item.json.workflowJson }}",
-        "commitMessage": "=Add: {{ $('Prepare Individual Workflow').item.json.workflowName }}"
-      },
-      "id": "b71974ca-97bf-458f-bc97-2e7d2c80c86a",
-      "name": "Create New File",
-      "type": "n8n-nodes-base.github",
-      "typeVersion": 1.1,
-      "position": [
-        -480,
-        176
-      ],
-      "webhookId": "9e4fcb47-1111-4034-aed8-d8e60dc03906",
-      "credentials": {
-        "githubApi": {
-          "id": "UPdIohV1bl8fDXlH",
-          "name": "GitHub account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "aggregate": "aggregateAllItemData",
-        "options": {}
-      },
-      "id": "634c5098-b22b-4367-9e0a-8a405507cac2",
-      "name": "Wait For All Workflows",
-      "type": "n8n-nodes-base.aggregate",
-      "typeVersion": 1,
-      "position": [
-        -272,
-        80
-      ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "total-count",
-              "name": "totalWorkflows",
-              "value": "={{ $json.length }}",
-              "type": "number"
-            },
-            {
-              "id": "timestamp",
-              "name": "timestamp",
-              "value": "={{ $now.toISO() }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "83f60961-a649-4408-981e-593ed03cfb1e",
-      "name": "Prepare Summary",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.3,
-      "position": [
-        -80,
-        80
+        -1488,
+        -304
       ]
     }
   ],
@@ -302,114 +190,96 @@
       "main": [
         [
           {
-            "node": "Get All Workflows",
+            "node": "Generate Trading Analysis Prompts",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get All Workflows": {
+    "Generate Trading Analysis Prompts": {
       "main": [
         [
           {
-            "node": "Split Into Items",
+            "node": "Trading Pattern Analyzer AI",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Split Into Items": {
+    "Trading Pattern Analyzer AI": {
       "main": [
         [
           {
-            "node": "Prepare Individual Workflow",
+            "node": "Filter High Confidence Signals",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Prepare Individual Workflow": {
+    "Filter High Confidence Signals": {
       "main": [
         [
           {
-            "node": "Check If File Exists",
+            "node": "Check if Actionable Signal",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Check If File Exists": {
+    "Check if Actionable Signal": {
       "main": [
         [
           {
-            "node": "Does File Exist?",
+            "node": "Send Telegram Alert",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Does File Exist?": {
-      "main": [
+    "Connect Gemini": {
+      "ai_languageModel": [
         [
           {
-            "node": "Update Existing File",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Create New File",
-            "type": "main",
+            "node": "Trading Pattern Analyzer AI",
+            "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Update Existing File": {
-      "main": [
+    "Get 1min Price Data": {
+      "ai_tool": [
         [
           {
-            "node": "Wait For All Workflows",
-            "type": "main",
+            "node": "Trading Pattern Analyzer AI",
+            "type": "ai_tool",
             "index": 0
           }
         ]
       ]
     },
-    "Create New File": {
-      "main": [
+    "Get 15min Price Data": {
+      "ai_tool": [
         [
           {
-            "node": "Wait For All Workflows",
-            "type": "main",
+            "node": "Trading Pattern Analyzer AI",
+            "type": "ai_tool",
             "index": 0
           }
         ]
       ]
     },
-    "Wait For All Workflows": {
-      "main": [
+    "Get 1hr Price Data": {
+      "ai_tool": [
         [
           {
-            "node": "Prepare Summary",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Prepare Summary": {
-      "main": [
-        [
-          {
-            "node": "Send Success Email",
-            "type": "main",
+            "node": "Trading Pattern Analyzer AI",
+            "type": "ai_tool",
             "index": 0
           }
         ]
@@ -417,7 +287,9 @@
     }
   },
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "SupOl9rOlZ62N5lV"
   },
   "staticData": {
     "node:Schedule Trigger": {
@@ -428,16 +300,23 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "05ced095-e913-43da-875f-1e8b0000df7f",
+  "versionId": "7bee20c0-9812-4939-ada7-ee5ed8fbc1c8",
   "triggerCount": 1,
   "shared": [
     {
-      "createdAt": "2025-11-17T20:09:09.086Z",
-      "updatedAt": "2025-11-17T20:09:09.086Z",
+      "createdAt": "2025-08-21T03:43:19.066Z",
+      "updatedAt": "2025-08-21T03:43:19.066Z",
       "role": "workflow:owner",
-      "workflowId": "Ds9wwXq6bSEfxV06",
+      "workflowId": "OS1uzjjqwkm8WaCk",
       "projectId": "X54hljIRMdcuCgG9"
     }
   ],
-  "tags": []
+  "tags": [
+    {
+      "createdAt": "2025-08-23T22:43:38.492Z",
+      "updatedAt": "2025-08-23T22:43:38.492Z",
+      "id": "fOqY3qvMrxFZ1H7o",
+      "name": "Trading Strategy"
+    }
+  ]
 }
