@@ -1,328 +1,54 @@
 {
-  "updatedAt": "2026-01-26T05:22:49.000Z",
-  "createdAt": "2026-01-25T22:56:51.532Z",
-  "id": "MlOpufuV0gElZAM6",
-  "name": "Telegram AI News Agent",
+  "updatedAt": "2025-12-18T19:28:01.000Z",
+  "createdAt": "2025-12-18T17:46:59.458Z",
+  "id": "P0f98ymdUzQhM2Dp",
+  "name": "AIWithLami-TitleSwitch",
   "active": false,
   "isArchived": false,
   "nodes": [
     {
-      "parameters": {
-        "url": "https://news.google.com/rss/search?q=AI+when:1d",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.rssFeedRead",
-      "typeVersion": 1.2,
-      "position": [
-        -464,
-        0
-      ],
-      "id": "67866448-8e9e-4ff1-8a65-5bd8832966c9",
-      "name": "RSS Read"
-    },
-    {
       "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
+      "id": "16a6d24b-4810-4a2f-a99b-1ab3b871be78",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
       "position": [
-        -656,
-        0
-      ],
-      "id": "5e96e785-b88f-4ff3-8971-d9d23763d262",
-      "name": "When clicking ‘Execute workflow’"
+        -224,
+        -16
+      ]
     },
     {
       "parameters": {
-        "options": {}
+        "resource": "video",
+        "operation": "update",
+        "videoId": "={{ $json.videoId }}",
+        "title": "={{ $json.newTitle }}",
+        "regionCode": "US",
+        "categoryId": "22",
+        "updateFields": {}
       },
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        -256,
-        0
-      ],
-      "id": "193032ed-8cfe-494f-b0f4-d2076da1bf6c",
-      "name": "Loop Over Items"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "44ee5814-9870-49e9-8a30-b9983bed141a",
-              "name": "news_id",
-              "value": "={{ $json.link }}",
-              "type": "string"
-            },
-            {
-              "id": "f3459c6c-9562-433c-9b7b-3b002557550c",
-              "name": "title",
-              "value": "={{ $json.title }}",
-              "type": "string"
-            },
-            {
-              "id": "f74ece66-ef31-43e2-8822-632403181540",
-              "name": "summary",
-              "value": "={{ $json.contentSnippet }}",
-              "type": "string"
-            },
-            {
-              "id": "68f4868a-8ef0-428a-b89b-d5c987b27e51",
-              "name": "link",
-              "value": "={{ $json.link }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
       "position": [
         0,
-        16
+        -16
       ],
-      "id": "dc3cb24b-13e3-44bd-acdd-369fc24d772e",
-      "name": "Edit Fields"
-    },
-    {
-      "parameters": {
-        "dataTableId": {
-          "__rl": true,
-          "value": "rWKas71hsOPEFuse",
-          "mode": "list",
-          "cachedResultName": "smagent",
-          "cachedResultUrl": "/projects/f2EbmniIBR8oZwzD/datatables/rWKas71hsOPEFuse"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {},
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "news_id",
-              "displayName": "news_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "title",
-              "displayName": "title",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "summary",
-              "displayName": "summary",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "link",
-              "displayName": "link",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1,
-      "position": [
-        800,
-        48
-      ],
-      "id": "e8ba55d3-06db-4dac-99bc-d8de4bd73745",
-      "name": "Insert row"
-    },
-    {
-      "parameters": {
-        "operation": "rowNotExists",
-        "dataTableId": {
-          "__rl": true,
-          "value": "rWKas71hsOPEFuse",
-          "mode": "list",
-          "cachedResultName": "smagent",
-          "cachedResultUrl": "/projects/f2EbmniIBR8oZwzD/datatables/rWKas71hsOPEFuse"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "link"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1,
-      "position": [
-        176,
-        0
-      ],
-      "id": "5de94afb-a9a8-4019-9f3c-f633b182701f",
-      "name": "If row does not exist"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://openrouter.ai/api/v1/chat/completions",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "Bearer $OPENROUTER_API_KEY"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"deepseek/deepseek-r1-0528:free\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are a social media strategist.\\n\\nNews:\\n{{ $('Edit Fields').item.json.title }}\\n{{ $('Edit Fields').item.json.summary }}\\n\\nWrite:\\n1. LinkedIn post\\n2. Twitter/X post\\n3. Facebook post\\n\\nRules:\\n- Clear\\n- Non-repetitive\\n- 3–5 hashtags\"\n    }\n  ]\n}\n\n",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        400,
-        16
-      ],
-      "id": "62374ed4-2e06-416f-a1b7-8ceee6c7c52a",
-      "name": "HTTP Request",
+      "id": "d4566e7b-1f3a-4052-9326-0861b5ba3743",
+      "name": "Update a video",
       "credentials": {
-        "httpHeaderAuth": {
-          "id": "JFQ7Arg0WYsup3AP",
-          "name": "openRouter"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "chatId": "321129994",
-        "text": "=📰 *{{ $('Edit Fields').item.json.title }}*  🔗 {{ $('Edit Fields').item.json.link }}  🔹 LinkedIn: {{linkedin_post}}  🔹 Twitter/X: {{twitter_post}}  🔹 Facebook: {{facebook_post}}",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        608,
-        32
-      ],
-      "id": "d947558e-33f4-41d2-9b36-0e9102630a1e",
-      "name": "Send a text message",
-      "webhookId": "6e5664c2-a9d9-4688-9ec0-e31298aabbe3",
-      "credentials": {
-        "telegramApi": {
-          "id": "JWBWYkchIsouEBi5",
-          "name": "Telegram account"
+        "youTubeOAuth2Api": {
+          "id": "HPVY6Iwtp4koiJ2j",
+          "name": "YouTube account"
         }
       }
     }
   ],
   "connections": {
-    "RSS Read": {
+    "Execute Workflow Trigger": {
       "main": [
         [
           {
-            "node": "Loop Over Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "When clicking ‘Execute workflow’": {
-      "main": [
-        [
-          {
-            "node": "RSS Read",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Loop Over Items": {
-      "main": [
-        [],
-        [
-          {
-            "node": "Edit Fields",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Edit Fields": {
-      "main": [
-        [
-          {
-            "node": "If row does not exist",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Insert row": {
-      "main": [
-        [
-          {
-            "node": "Loop Over Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If row does not exist": {
-      "main": [
-        [
-          {
-            "node": "HTTP Request",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP Request": {
-      "main": [
-        [
-          {
-            "node": "Send a text message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send a text message": {
-      "main": [
-        [
-          {
-            "node": "Insert row",
+            "node": "Update a video",
             "type": "main",
             "index": 0
           }
@@ -338,15 +64,15 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "6e147d4e-3fa8-486c-9def-c4aa15d4024e",
+  "versionId": "2575f840-98e0-49f9-b604-fc407c23cad6",
   "activeVersionId": null,
   "triggerCount": 0,
   "shared": [
     {
-      "updatedAt": "2026-01-25T22:56:51.566Z",
-      "createdAt": "2026-01-25T22:56:51.566Z",
+      "updatedAt": "2025-12-18T17:46:59.493Z",
+      "createdAt": "2025-12-18T17:46:59.493Z",
       "role": "workflow:owner",
-      "workflowId": "MlOpufuV0gElZAM6",
+      "workflowId": "P0f98ymdUzQhM2Dp",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
