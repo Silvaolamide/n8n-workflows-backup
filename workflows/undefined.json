@@ -1,14 +1,14 @@
 {
-  "updatedAt": "2025-12-18T19:28:01.000Z",
-  "createdAt": "2025-12-18T17:46:59.458Z",
-  "id": "P0f98ymdUzQhM2Dp",
-  "name": "AIWithLami-TitleSwitch",
+  "updatedAt": "2025-12-19T06:46:07.000Z",
+  "createdAt": "2025-12-19T06:23:57.845Z",
+  "id": "TU7FpM3u2KkDbiU6",
+  "name": "AbrahamHicks-TitleSwitch",
   "active": false,
   "isArchived": false,
   "nodes": [
     {
       "parameters": {},
-      "id": "16a6d24b-4810-4a2f-a99b-1ab3b871be78",
+      "id": "a84eb069-fbf9-4b47-b12c-efa04cc08794",
       "name": "Execute Workflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
@@ -33,12 +33,12 @@
         0,
         -16
       ],
-      "id": "d4566e7b-1f3a-4052-9326-0861b5ba3743",
+      "id": "82d07177-04a6-497d-a847-99d6b6fb2892",
       "name": "Update a video",
       "credentials": {
         "youTubeOAuth2Api": {
-          "id": "HPVY6Iwtp4koiJ2j",
-          "name": "YouTube account"
+          "id": "jhb7lOZhnLzfiqZN",
+          "name": "YouTube account 2"
         }
       }
     }
@@ -64,15 +64,15 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "2575f840-98e0-49f9-b604-fc407c23cad6",
+  "versionId": "e06d2b14-8b21-4f7a-81a1-abfa31bbd9ad",
   "activeVersionId": null,
   "triggerCount": 0,
   "shared": [
     {
-      "updatedAt": "2025-12-18T17:46:59.493Z",
-      "createdAt": "2025-12-18T17:46:59.493Z",
+      "updatedAt": "2025-12-19T06:23:57.873Z",
+      "createdAt": "2025-12-19T06:23:57.873Z",
       "role": "workflow:owner",
-      "workflowId": "P0f98ymdUzQhM2Dp",
+      "workflowId": "TU7FpM3u2KkDbiU6",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
