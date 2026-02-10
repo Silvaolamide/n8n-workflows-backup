@@ -1,844 +1,297 @@
 {
-  "updatedAt": "2026-01-07T09:17:46.419Z",
-  "createdAt": "2026-01-07T09:17:46.419Z",
-  "id": "cLjt5Mfl2PRz9U9y",
-  "name": "Courselamy",
-  "active": false,
+  "updatedAt": "2025-12-20T20:02:07.000Z",
+  "createdAt": "2025-12-18T18:44:39.187Z",
+  "id": "sDLr8VoUAhb8J47Z",
+  "name": "Manager-YoutubeTitleSwitch",
+  "active": true,
   "isArchived": false,
   "nodes": [
     {
       "parameters": {
-        "triggerTimes": {
-          "item": [
+        "rule": {
+          "interval": [
             {
-              "mode": "everyX",
-              "value": 30,
-              "unit": "minutes"
+              "field": "minutes",
+              "minutesInterval": 15
             }
           ]
         }
       },
-      "id": "f28da8ac-f1c2-4e1d-a493-98d38a9f7214",
-      "name": "Schedule Trigger1",
-      "type": "n8n-nodes-base.cron",
-      "typeVersion": 1,
-      "position": [
-        -1472,
-        384
-      ],
-      "retryOnFail": true,
-      "maxTries": 5,
-      "waitBetweenTries": 5000
-    },
-    {
-      "parameters": {
-        "url": "https://www.discudemy.com/feed/",
-        "responseFormat": "string",
-        "options": {}
-      },
-      "id": "fbff07cf-9be1-4dfd-adb1-8b2e26fd6051",
-      "name": "Fetch RSS1",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 1,
-      "position": [
-        -1248,
-        384
-      ]
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "id": "682bd361-df21-4de7-b498-76f3a6e3ef0d",
-      "name": "XML → JSON1",
-      "type": "n8n-nodes-base.xml",
-      "typeVersion": 1,
-      "position": [
-        -1024,
-        384
-      ]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Access workflow static data in global scope\nconst seen = getWorkflowStaticData('global');\n\nconst courseId = $json.link;\n\nif (!seen.courses) {\n  seen.courses = [];\n}\n\nif (seen.courses.includes(courseId)) {\n  return [];\n}\n\nseen.courses.push(courseId);\n\nreturn [ { json: $json } ];"
-      },
-      "id": "2e6ea0f9-7ba2-47eb-9f8b-c406280e4fc3",
-      "name": "Filter Seen Courses",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        -800,
-        384
-      ]
-    },
-    {
-      "parameters": {
-        "functionCode": "const items = $json.rss.channel.item;\n\nreturn items.map(course => {\n  const link = String(course.link || \"\");\n  // strip origin\n  const slug = link.replace(/^https?:\\/\\/www\\.discudemy\\.com\\//, \"\").replace(/^\\/+/, \"\");\n  // last part after category\n  const lastPart = slug.split(\"/\").filter(Boolean).pop();\n  const goLink = `https://www.discudemy.com/go/${lastPart}`;\n\n  return {\n    json: {\n      ...course,\n      goLink\n    }\n  };\n});"
-      },
-      "id": "bf497d07-bd58-4e02-9dc7-3fa69406c3b7",
-      "name": "Build Go Link",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        -576,
-        384
-      ]
-    },
-    {
-      "parameters": {
-        "url": "={{$json.goLink}}",
-        "options": {}
-      },
-      "id": "5f330e50-2726-4166-b944-0196f5018950",
-      "name": "Fetch Go Page",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -480,
-        608
-      ]
-    },
-    {
-      "parameters": {
-        "functionCode": "const items = $items(\"Fetch Go Page\");\n\nreturn items.map((item, index) => {\n  const html = item.json.data;\n\n  const regex = /https:\\/\\/www\\.udemy\\.com\\/course\\/[^\\s\"'<>?]+[^\"'<>]*/g;\n  const match = html.match(regex);\n\n  return {\n    json: {\n      index,\n      udemyLink: match ? match[0] : null\n    }\n  };\n});"
-      },
-      "id": "81bd2fd8-22ff-4334-9f09-b4ef8ec36a8f",
-      "name": "Extract Udemy Link",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
       "position": [
         -352,
-        608
-      ]
-    },
-    {
-      "parameters": {
-        "mode": "combine",
-        "combinationMode": "mergeByPosition",
-        "options": {}
-      },
-      "id": "b842bdd2-1d86-4099-9bb3-de54d207f4f8",
-      "name": "Merge Course + Udemy1",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 2,
-      "position": [
-        -192,
-        400
-      ]
-    },
-    {
-      "parameters": {
-        "url": "={{ $json.link }}",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "string"
-            }
-          }
-        }
-      },
-      "id": "f437c49f-5c17-40a0-bd34-8e2383affb19",
-      "name": "Fetch Discudemy Course Page",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        0,
-        400
-      ]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Extract Udemy image URL from Discudemy page HTML - PRESERVE UNDERSCORES\nconst items = $input.all();\nconst courseItems = $items('Merge Course + Udemy1');\n\nreturn items.map((item, index) => {\n  const courseData = courseItems[index].json;\n  const html = item.json.data || item.json || '';\n  \n  let udemyImageUrl = null;\n  \n  // Method 1: Direct Udemy CDN patterns for 480x270 images - DON'T MODIFY THE URL\n  const cdnPattern = /https:\\/\\/img-[a-z]\\.udemycdn\\.com\\/course\\/480x270\\/[0-9]+_[a-zA-Z0-9_]+\\.(jpg|jpeg|png|webp)/i;\n  let match = html.match(cdnPattern);\n  \n  if (match) {\n    udemyImageUrl = match[0];\n  } else {\n    // Method 2: Any Udemy CDN image - DON'T MODIFY THE URL\n    const anyUdemyPattern = /https:\\/\\/img-[a-z]\\.udemycdn\\.com\\/course\\/[^\\/]+\\/[0-9]+_[a-zA-Z0-9_]+\\.(jpg|jpeg|png|webp)/gi;\n    const matches = html.match(anyUdemyPattern);\n    \n    if (matches && matches.length > 0) {\n      // Get the first match - PRESERVE ORIGINAL URL WITH UNDERSCORES\n      udemyImageUrl = matches[0];\n    } else {\n      // Method 3: Look in meta tags\n      const metaPatterns = [\n        /<meta\\s+property=\"og:image\"\\s+content=\"([^\"]+udemycdn[^\"]+)\"/i,\n        /<meta\\s+name=\"twitter:image\"\\s+content=\"([^\"]+udemycdn[^\"]+)\"/i\n      ];\n      \n      for (const pattern of metaPatterns) {\n        match = html.match(pattern);\n        if (match) {\n          udemyImageUrl = match[1]; // PRESERVE ORIGINAL URL\n          break;\n        }\n      }\n      \n      // Method 4: Look for any image in img tags\n      if (!udemyImageUrl) {\n        const imgPattern = /<img[^>]+src=\"([^\"]+udemycdn[^\"]+)\"/gi;\n        const imgMatches = [...html.matchAll(imgPattern)];\n        if (imgMatches.length > 0) {\n          udemyImageUrl = imgMatches[0][1]; // PRESERVE ORIGINAL URL\n        }\n      }\n    }\n  }\n  \n  // Clean URL - but preserve underscores\n  if (udemyImageUrl) {\n    udemyImageUrl = udemyImageUrl.split('?')[0];\n  }\n  \n  console.log('Extracted image for course:', courseData.title, '- Image:', udemyImageUrl);\n  \n  return {\n    json: {\n      ...courseData,\n      udemyImageUrl: udemyImageUrl,\n      extractedUdemyImageUrl: udemyImageUrl,\n      hasUdemyImage: !!udemyImageUrl\n    }\n  };\n});"
-      },
-      "id": "6cf27db9-1bce-4b52-b29e-f24114a7b48d",
-      "name": "Extract Udemy Image URL",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        192,
-        400
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 1
-          },
-          "conditions": [
-            {
-              "id": "1",
-              "leftValue": "={{ $json.udemyLink }}",
-              "rightValue": "null",
-              "operator": {
-                "type": "string",
-                "operation": "notEquals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "e7892f98-df4d-4725-b623-0787cc696761",
-      "name": "Filter Valid Courses1",
-      "type": "n8n-nodes-base.filter",
-      "typeVersion": 2,
-      "position": [
-        0,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0",
-          "mode": "id"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "https://docs.google.com/spreadsheets/d/1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0/edit?pli=1&gid=0#gid=0",
-          "mode": "url"
-        },
-        "options": {}
-      },
-      "id": "8acf9305-919e-40ce-91d6-f2baf505b671",
-      "name": "Read Existing Courses1",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4,
-      "position": [
-        208,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Get all existing udemyLinks from the sheet\nconst existingRecords = $items(\"Read Existing Courses1\");\nconst existingLinks = new Set(\n  existingRecords.map(record => record.json.udemyLink).filter(link => link)\n);\n\n// Get incoming courses\nconst incomingCourses = $items(\"Filter Valid Courses1\");\n\n// Filter out courses that already exist in the sheet\nconst newCourses = incomingCourses.filter(course => {\n  const udemyLink = course.json.udemyLink;\n  return udemyLink && !existingLinks.has(udemyLink);\n});\n\nreturn newCourses;"
-      },
-      "id": "7d4ca60b-32f4-4d20-9276-44cab19b9662",
-      "name": "Filter New Courses Only1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        416,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "url": "={{ 'https://courselamy.site/wp-json/wp/v2/categories?search=' + encodeURIComponent(($json.category && (typeof $json.category === 'string' ? $json.category : $json.category._ || $json.category['#text'] || $json.category.text || '')) || '').toLowerCase() + '&per_page=100' }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpBasicAuth",
-        "options": {
-          "response": {
-            "response": {
-              "neverError": true
-            }
-          }
-        }
-      },
-      "id": "03b3531d-aa86-4f2b-9a45-bd5c35a09f68",
-      "name": "Check Category Exists",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
-      "position": [
-        624,
-        0
+        16
       ],
-      "alwaysOutputData": true
+      "id": "984aa69d-111a-4290-9940-de663d36823b",
+      "name": "Schedule Trigger"
     },
     {
       "parameters": {
-        "functionCode": "// Process category check results with exact matching - ENSURE ALL COURSES CONTINUE\nconst items = $input.all();\nconst courseItems = $items('Filter New Courses Only1');\n\n// Ensure we only process matching items\nconst minLength = Math.min(items.length, courseItems.length);\n\nreturn items.slice(0, minLength).map((item, index) => {\n  const courseData = courseItems[index].json;\n  const response = item.json;\n  \n  let categoryId = null;\n  \n  // Safely extract category name - handle both string and object types\n  let categoryName = '';\n  if (typeof courseData.category === 'string') {\n    categoryName = courseData.category;\n  } else if (courseData.category && typeof courseData.category === 'object') {\n    // If it's an object, try to get the text content\n    categoryName = courseData.category._ || courseData.category['#text'] || courseData.category.text || '';\n  }\n  \n  const searchCategory = categoryName.toLowerCase().trim();\n  \n  // Check if category already exists with exact name match\n  if (Array.isArray(response) && response.length > 0) {\n    // Find exact match (case insensitive)\n    const exactMatch = response.find(cat => {\n      const catName = (cat.name || '').toLowerCase().trim();\n      return catName === searchCategory && searchCategory !== '';\n    });\n    categoryId = exactMatch ? exactMatch.id : null;\n  } else if (response && response.id) {\n    categoryId = response.id;\n  }\n  \n  console.log('Category check for:', categoryName, '- Found ID:', categoryId, '- Exact match:', !!categoryId);\n  \n  return {\n    json: {\n      ...courseData,\n      category: categoryName, // Ensure category is always a string\n      existingCategoryId: categoryId,\n      needsCategoryCreation: Boolean(!categoryId && searchCategory),\n      ldCategoryId: categoryId || null,\n      categoryName: searchCategory\n    }\n  };\n});"
-      },
-      "id": "0ba97c2c-3cd1-4638-a1e4-ae7369e0930e",
-      "name": "Process Category Check",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        832,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 1
-          },
-          "conditions": [
-            {
-              "id": "1",
-              "leftValue": "={{ $json.needsCategoryCreation }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appzeLd3Re7qGX3mw",
+          "mode": "list",
+          "cachedResultName": "YoutubeTitleSwitch",
+          "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw"
         },
-        "options": {}
-      },
-      "id": "43634f5c-6c48-4436-a1e1-1e5089b14ad2",
-      "name": "Filter Needs Category Creation",
-      "type": "n8n-nodes-base.filter",
-      "typeVersion": 2,
-      "position": [
-        720,
-        608
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://courselamy.site/wp-json/wp/v2/categories",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpBasicAuth",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "name",
-              "value": "={{ (($json.category && (typeof $json.category === 'string' ? $json.category : $json.category._ || $json.category['#text'] || $json.category.text || '')) || '').replace(/\\\\s*\\\\[100% OFF\\\\]\\\\s*/gi, '').trim() }}"
-            },
-            {
-              "name": "slug",
-              "value": "={{ (($json.category && (typeof $json.category === 'string' ? $json.category : $json.category._ || $json.category['#text'] || $json.category.text || '')) || '').replace(/\\\\s*\\\\[100% OFF\\\\]\\\\s*/gi, '').toLowerCase().trim().replace(/\\\\s+/g, '-') }}"
-            }
-          ]
+        "table": {
+          "__rl": true,
+          "value": "tbli18a96wUhpZy0J",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw/tbli18a96wUhpZy0J"
         },
+        "filterByFormula": "AND({Status}='Active', OR({Next Run Time}=BLANK(), IS_BEFORE({Next Run Time}, NOW())))",
         "options": {}
       },
-      "id": "efb06bd4-ef84-4660-b53a-eb356c723954",
-      "name": "Create New Category",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
       "position": [
-        928,
-        608
-      ]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Extract new category ID and merge with original data - with error handling\nconst items = $input.all();\nconst courseItems = $items('Filter Needs Category Creation');\n\nreturn items.map((item, index) => {\n  const courseData = courseItems[index].json;\n  const response = item.json;\n  \n  // If creation failed with \"term exists\" error, try to fetch the existing category\n  if (response && response.code === 'term_exists') {\n    console.log('Category already exists, using existing ID:', response.data.term_id);\n    return {\n      json: {\n        ...courseData,\n        ldCategoryId: response.data.term_id,\n        categoryCreated: false, // wasn't created by us\n        categoryAlreadyExists: true\n      }\n    };\n  }\n  \n  if (response && response.id) {\n    return {\n      json: {\n        ...courseData,\n        ldCategoryId: response.id,\n        categoryCreated: true\n      }\n    };\n  }\n  \n  // If we get here, category creation failed for another reason\n  console.log('Category creation failed:', response);\n  return {\n    json: {\n      ...courseData,\n      categoryCreated: false,\n      creationError: response\n    }\n  };\n});"
-      },
-      "id": "078ef489-5a57-421c-966b-9601c7ef8d44",
-      "name": "Extract Category ID",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        1136,
-        608
-      ]
-    },
-    {
-      "parameters": {
-        "mode": "combine",
-        "combinationMode": "mergeByPosition",
-        "options": {}
-      },
-      "id": "d1f44b6b-4976-46cd-bfaf-a08a776d6c5a",
-      "name": "Merge Category Data",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 2,
-      "position": [
-        1344,
-        448
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://courselamy.site/wp-json/ldlms/v1/sfwd-courses",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpBasicAuth",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "title",
-              "value": "={{ $json.title.replace(/\\s*\\[\\s*100%\\s*OFF\\s*\\]\\s*/gi, '').trim() }}"
-            },
-            {
-              "name": "content",
-              "value": "={{ \n  (\n    $json.udemyImageUrl \n      ? '<div style=\"text-align: center; margin-bottom: 20px;\"><img src=\"' + $json.udemyImageUrl + '\" alt=\"Course Image\" style=\"max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);\"/></div>' \n      : ($json.enclosure || $json.image \n        ? '<div style=\"text-align: center; margin-bottom: 20px;\"><img src=\"' + ($json.enclosure?.url || $json.image) + '\" alt=\"Course Image\" style=\"max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);\"/></div>' \n        : '')\n  ) \n  + (\n    $json.description \n      ? $json.description\n          .replace(/<p><a rel=\"nofollow\" href=\"[^\"]+\">\\s*\\[100% OFF\\]\\s*[^<]+<\\/a><\\/p>\\s*/gi, \"\") \n          .replace(/https?:\\/\\/www\\.discudemy\\.com\\/[^\\s\"'<]+/gi, '') // REMOVE DISCUDEMY LINKS\n      : ''\n  ) \n  + '<br/><br/><div style=\"background-color: #f0f0f0; padding: 15px; border-radius: 5px; margin-top: 20px;\"><strong>🎓 Enrol for Course:</strong> <a href=\"' + ($json.udemyLink || '') + '\" target=\"_blank\" style=\"color: #0073aa; text-decoration: none; font-weight: bold;\">' + ($json.udemyLink || '') + '</a></div>'\n}}"
-            },
-            {
-              "name": "status",
-              "value": "publish"
-            },
-            {
-              "name": "categories",
-              "value": "={{ $json.ldCategoryId || '' }}"
-            },
-            {
-              "name": "meta",
-              "value": "={{ { course_image_url: $json.udemyImageUrl || $json.enclosure || $json.image || '', learndash_course_image: $json.udemyImageUrl || $json.enclosure || $json.image || '' } }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "name": "Create LearnDash Course1",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
-      "position": [
-        1552,
-        448
+        -144,
+        16
       ],
-      "id": "1eb1b748-7bdf-42cf-a999-1929ca637b1c"
+      "id": "9b2c9863-44c5-438d-8b82-cec87d64416a",
+      "name": "Search records",
+      "retryOnFail": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "XbimsFUgNwhgkhc5",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
     },
     {
       "parameters": {
-        "functionCode": "// Extract LearnDash course link from response - Process ALL items\nconst allResponses = $input.all();\nconst allOriginalData = $items(\"Merge Category Data\");\nconst results = [];\n\nfor (let i = 0; i < allResponses.length; i++) {\n  const response = allResponses[i].json;\n  const originalCourse = allOriginalData[i].json;\n  \n  if (response && response.id) {\n    const learnDashLink = `https://courselamy.site/courses/${response.slug || response.id}/`;\n    \n    results.push({\n      json: {\n        ...originalCourse,\n        learnDashLink: learnDashLink,\n        learnDashId: response.id,\n        learnDashSlug: response.slug\n      }\n    });\n  } else {\n    results.push({\n      json: {\n        ...originalCourse,\n        learnDashLink: null,\n        learnDashId: null\n      }\n    });\n  }\n}\n\nreturn results;"
+        "jsCode": "const results = [];\n\n// Loop through every video found in Airtable\nfor (const item of $input.all()) {\n  const row = item.json;\n\n  // 1. Safety Check: If no titles, skip\n  if (!row.Titles) continue;\n\n  // 2. Split the titles by the pipe symbol |\n  const titleList = row.Titles.split('|').map(t => t.trim());\n\n  // 3. Calculate the Next Index\n  let nextIndex = (row['Current Index'] || 0) + 1;\n\n  // If we reached the end of the list, go back to the start (0)\n  if (nextIndex >= titleList.length) {\n    nextIndex = 0;\n  }\n\n  // 4. Pick the new title\n  const newTitle = titleList[nextIndex];\n\n  // 5. Calculate Next Run Time (Current Time + Interval Minutes)\n  const interval = row['Interval Minutes'] || 60;\n  // Get current time, add minutes * 60000 (to convert to ms)\n  const nextRun = new Date(new Date().getTime() + interval * 60000);\n\n  // 6. Output the data for the next nodes\n  results.push({\n    json: {\n      airtableId: row.id,           // The ID of the row (to update later)\n      workerId: row['Worker ID'],   // Who should do the work?\n      videoId: row['Video ID'],     // Which video?\n      newTitle: newTitle,           // The new title to set\n      nextIndex: nextIndex,         // The new index number to save\n      nextRunTime: nextRun.toISOString() // The new time to save\n    }\n  });\n}\n\nreturn results;"
       },
-      "id": "b711c52f-2f5b-432f-b430-47ce2a60b1d6",
-      "name": "Extract LearnDash Link1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        1760,
-        448
-      ]
+        64,
+        16
+      ],
+      "id": "f9c1a7a7-7260-45c5-8e8c-4655050e8d36",
+      "name": "Code in JavaScript"
     },
     {
       "parameters": {
-        "operation": "appendOrUpdate",
-        "documentId": {
+        "operation": "update",
+        "base": {
           "__rl": true,
-          "value": "1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0",
-          "mode": "id"
+          "value": "appzeLd3Re7qGX3mw",
+          "mode": "list",
+          "cachedResultName": "YoutubeTitleSwitch",
+          "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw"
         },
-        "sheetName": {
+        "table": {
           "__rl": true,
-          "value": "https://docs.google.com/spreadsheets/d/1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0/edit?pli=1&gid=0#gid=0",
-          "mode": "url"
+          "value": "tbli18a96wUhpZy0J",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw/tbli18a96wUhpZy0J"
         },
         "columns": {
-          "mappingMode": "autoMapInputData",
-          "value": {},
+          "mappingMode": "defineBelow",
+          "value": {
+            "Current Index": "={{ $('Code in JavaScript').item.json.nextIndex }}",
+            "Video ID": "={{ $('Code in JavaScript').item.json.videoId }}",
+            "Next Run Time": "={{ $('Code in JavaScript').item.json.nextRunTime }}"
+          },
           "matchingColumns": [
-            "udemyLink"
+            "Video ID"
           ],
           "schema": [
             {
-              "id": "title",
-              "displayName": "title",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "udemyLink",
-              "displayName": "udemyLink",
+              "id": "id",
+              "displayName": "id",
               "required": false,
               "defaultMatch": true,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "readOnly": true,
+              "removed": true
             },
             {
-              "id": "category",
-              "displayName": "category",
+              "id": "Video ID",
+              "displayName": "Video ID",
               "required": false,
               "defaultMatch": false,
+              "canBeUsedToMatch": true,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "readOnly": false,
+              "removed": false
             },
             {
-              "id": "udemyImageUrl",
-              "displayName": "udemyImageUrl",
+              "id": "Titles",
+              "displayName": "Titles",
               "required": false,
               "defaultMatch": false,
+              "canBeUsedToMatch": true,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": false
+              "readOnly": false,
+              "removed": true
             },
             {
-              "id": "learnDashLink",
-              "displayName": "learnDashLink",
+              "id": "Current Index",
+              "displayName": "Current Index",
               "required": false,
               "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Worker ID",
+              "displayName": "Worker ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": false
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Active",
+                  "value": "Active"
+                },
+                {
+                  "name": "Paused",
+                  "value": "Paused"
+                },
+                {
+                  "name": "Completed",
+                  "value": "Completed"
+                }
+              ],
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Interval Minutes",
+              "displayName": "Interval Minutes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Next Run Time",
+              "displayName": "Next Run Time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
             }
-          ]
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
         },
         "options": {}
       },
-      "id": "ebe7cb26-10ba-4ba5-8e92-9146db05bdaf",
-      "name": "Save to Google Sheets1",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4,
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
       "position": [
-        1952,
-        240
-      ]
+        480,
+        16
+      ],
+      "id": "91e5418d-23a1-4e5e-8864-2b6d1214b63c",
+      "name": "Update record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "XbimsFUgNwhgkhc5",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
     },
     {
       "parameters": {
-        "url": "={{ $json.udemyImageUrl }}",
+        "workflowId": {
+          "__rl": true,
+          "value": "={{ $json.workerId }}",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
         "options": {}
       },
-      "id": "a5e13448-ba1d-4b2d-8a91-5a099bf45fdd",
-      "name": "Download Udemy Image",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
       "position": [
-        2112,
-        448
-      ]
-    },
-    {
-      "parameters": {
-        "unit": "minutes"
-      },
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        2848,
-        464
+        272,
+        16
       ],
-      "id": "afe16d44-a59f-4afa-9628-8607fd4c8847",
-      "name": "Wait",
-      "webhookId": "f402991d-9b20-49ec-94a5-13a470225c17",
-      "executeOnce": false
-    },
-    {
-      "parameters": {
-        "options": {
-          "reset": false
-        }
-      },
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        2320,
-        448
-      ],
-      "id": "43af6d7c-471a-4a48-8b78-daa1ccd32995",
-      "name": "Loop Over Items"
-    },
-    {
-      "parameters": {
-        "text": "={{ `🎓 ${$json.title.replace(/\\s*\\[\\s*100%\\s*OFF\\s*\\]\\s*/gi, '').trim().replace(/([_*[\\]()~`>#+\\-=|{}.!])/g, '\\\\$1')}\\n\\n🎯 Category: ${$json.category || 'General'}\\n🌐 Course Page: ${$json.learnDashLink || 'Check our website for details!'}\\n\\n#Udemy #FreeCourse #${($json.category || 'Learning').replace(/[^a-zA-Z0-9]/g, '')} #OnlineLearning` }}",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.twitter",
-      "typeVersion": 2,
-      "position": [
-        2592,
-        464
-      ],
-      "id": "76aeed50-837a-429f-a04e-526481c0b588",
-      "name": "Create Tweet2"
+      "id": "c66f7c42-3f58-4f5f-ac0a-d6175d9410a4",
+      "name": "Call 'AIWithLami-TitleSwitch'"
     }
   ],
   "connections": {
-    "Schedule Trigger1": {
+    "Schedule Trigger": {
       "main": [
         [
           {
-            "node": "Fetch RSS1",
+            "node": "Search records",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Fetch RSS1": {
+    "Search records": {
       "main": [
         [
           {
-            "node": "XML → JSON1",
+            "node": "Code in JavaScript",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "XML → JSON1": {
+    "Code in JavaScript": {
       "main": [
         [
           {
-            "node": "Filter Seen Courses",
+            "node": "Call 'AIWithLami-TitleSwitch'",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter Seen Courses": {
+    "Call 'AIWithLami-TitleSwitch'": {
       "main": [
         [
           {
-            "node": "Build Go Link",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Build Go Link": {
-      "main": [
-        [
-          {
-            "node": "Merge Course + Udemy1",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Fetch Go Page",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch Go Page": {
-      "main": [
-        [
-          {
-            "node": "Extract Udemy Link",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract Udemy Link": {
-      "main": [
-        [
-          {
-            "node": "Merge Course + Udemy1",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Merge Course + Udemy1": {
-      "main": [
-        [
-          {
-            "node": "Fetch Discudemy Course Page",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch Discudemy Course Page": {
-      "main": [
-        [
-          {
-            "node": "Extract Udemy Image URL",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract Udemy Image URL": {
-      "main": [
-        [
-          {
-            "node": "Filter Valid Courses1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Filter Valid Courses1": {
-      "main": [
-        [
-          {
-            "node": "Read Existing Courses1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Read Existing Courses1": {
-      "main": [
-        [
-          {
-            "node": "Filter New Courses Only1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Filter New Courses Only1": {
-      "main": [
-        [
-          {
-            "node": "Check Category Exists",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Check Category Exists": {
-      "main": [
-        [
-          {
-            "node": "Process Category Check",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Process Category Check": {
-      "main": [
-        [
-          {
-            "node": "Merge Category Data",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Filter Needs Category Creation",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Filter Needs Category Creation": {
-      "main": [
-        [
-          {
-            "node": "Create New Category",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Create New Category": {
-      "main": [
-        [
-          {
-            "node": "Extract Category ID",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract Category ID": {
-      "main": [
-        [
-          {
-            "node": "Merge Category Data",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Merge Category Data": {
-      "main": [
-        [
-          {
-            "node": "Create LearnDash Course1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Create LearnDash Course1": {
-      "main": [
-        [
-          {
-            "node": "Extract LearnDash Link1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract LearnDash Link1": {
-      "main": [
-        [
-          {
-            "node": "Save to Google Sheets1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Save to Google Sheets1": {
-      "main": [
-        [
-          {
-            "node": "Download Udemy Image",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Download Udemy Image": {
-      "main": [
-        [
-          {
-            "node": "Loop Over Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wait": {
-      "main": [
-        [
-          {
-            "node": "Loop Over Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Loop Over Items": {
-      "main": [
-        [],
-        [
-          {
-            "node": "Create Tweet2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Create Tweet2": {
-      "main": [
-        [
-          {
-            "node": "Wait",
+            "node": "Update record",
             "type": "main",
             "index": 0
           }
@@ -849,21 +302,347 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "staticData": null,
-  "meta": null,
-  "pinData": {},
-  "versionId": "df8fe1d0-b293-445a-952a-973b61340d93",
-  "activeVersionId": null,
-  "triggerCount": 0,
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Schedule Trigger": [
+      {
+        "json": {
+          "timestamp": "2025-12-18T15:45:50.010-05:00",
+          "Readable date": "December 18th 2025, 3:45:50 pm",
+          "Readable time": "3:45:50 pm",
+          "Day of week": "Thursday",
+          "Year": "2025",
+          "Month": "December",
+          "Day of month": "18",
+          "Hour": "15",
+          "Minute": "45",
+          "Second": "50",
+          "Timezone": "America/New_York (UTC-05:00)"
+        }
+      }
+    ]
+  },
+  "versionId": "3121bc1b-e800-4684-9e32-ad9f49e8f342",
+  "activeVersionId": "3121bc1b-e800-4684-9e32-ad9f49e8f342",
+  "triggerCount": 1,
   "shared": [
     {
-      "updatedAt": "2026-01-07T09:17:46.902Z",
-      "createdAt": "2026-01-07T09:17:46.902Z",
+      "updatedAt": "2025-12-18T18:44:39.213Z",
+      "createdAt": "2025-12-18T18:44:39.213Z",
       "role": "workflow:owner",
-      "workflowId": "cLjt5Mfl2PRz9U9y",
+      "workflowId": "sDLr8VoUAhb8J47Z",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
-  "activeVersion": null,
+  "activeVersion": {
+    "updatedAt": "2025-12-20T20:02:06.998Z",
+    "createdAt": "2025-12-20T20:02:06.998Z",
+    "versionId": "3121bc1b-e800-4684-9e32-ad9f49e8f342",
+    "workflowId": "sDLr8VoUAhb8J47Z",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "minutes",
+                "minutesInterval": 15
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          -352,
+          16
+        ],
+        "id": "984aa69d-111a-4290-9940-de663d36823b",
+        "name": "Schedule Trigger"
+      },
+      {
+        "parameters": {
+          "operation": "search",
+          "base": {
+            "__rl": true,
+            "value": "appzeLd3Re7qGX3mw",
+            "mode": "list",
+            "cachedResultName": "YoutubeTitleSwitch",
+            "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbli18a96wUhpZy0J",
+            "mode": "list",
+            "cachedResultName": "Table 1",
+            "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw/tbli18a96wUhpZy0J"
+          },
+          "filterByFormula": "AND({Status}='Active', OR({Next Run Time}=BLANK(), IS_BEFORE({Next Run Time}, NOW())))",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          -144,
+          16
+        ],
+        "id": "9b2c9863-44c5-438d-8b82-cec87d64416a",
+        "name": "Search records",
+        "retryOnFail": true,
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "XbimsFUgNwhgkhc5",
+            "name": "Airtable Personal Access Token account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const results = [];\n\n// Loop through every video found in Airtable\nfor (const item of $input.all()) {\n  const row = item.json;\n\n  // 1. Safety Check: If no titles, skip\n  if (!row.Titles) continue;\n\n  // 2. Split the titles by the pipe symbol |\n  const titleList = row.Titles.split('|').map(t => t.trim());\n\n  // 3. Calculate the Next Index\n  let nextIndex = (row['Current Index'] || 0) + 1;\n\n  // If we reached the end of the list, go back to the start (0)\n  if (nextIndex >= titleList.length) {\n    nextIndex = 0;\n  }\n\n  // 4. Pick the new title\n  const newTitle = titleList[nextIndex];\n\n  // 5. Calculate Next Run Time (Current Time + Interval Minutes)\n  const interval = row['Interval Minutes'] || 60;\n  // Get current time, add minutes * 60000 (to convert to ms)\n  const nextRun = new Date(new Date().getTime() + interval * 60000);\n\n  // 6. Output the data for the next nodes\n  results.push({\n    json: {\n      airtableId: row.id,           // The ID of the row (to update later)\n      workerId: row['Worker ID'],   // Who should do the work?\n      videoId: row['Video ID'],     // Which video?\n      newTitle: newTitle,           // The new title to set\n      nextIndex: nextIndex,         // The new index number to save\n      nextRunTime: nextRun.toISOString() // The new time to save\n    }\n  });\n}\n\nreturn results;"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          64,
+          16
+        ],
+        "id": "f9c1a7a7-7260-45c5-8e8c-4655050e8d36",
+        "name": "Code in JavaScript"
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "base": {
+            "__rl": true,
+            "value": "appzeLd3Re7qGX3mw",
+            "mode": "list",
+            "cachedResultName": "YoutubeTitleSwitch",
+            "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tbli18a96wUhpZy0J",
+            "mode": "list",
+            "cachedResultName": "Table 1",
+            "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw/tbli18a96wUhpZy0J"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Current Index": "={{ $('Code in JavaScript').item.json.nextIndex }}",
+              "Video ID": "={{ $('Code in JavaScript').item.json.videoId }}",
+              "Next Run Time": "={{ $('Code in JavaScript').item.json.nextRunTime }}"
+            },
+            "matchingColumns": [
+              "Video ID"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": true,
+                "removed": true
+              },
+              {
+                "id": "Video ID",
+                "displayName": "Video ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Titles",
+                "displayName": "Titles",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Current Index",
+                "displayName": "Current Index",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "Worker ID",
+                "displayName": "Worker ID",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Status",
+                "displayName": "Status",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "options",
+                "options": [
+                  {
+                    "name": "Active",
+                    "value": "Active"
+                  },
+                  {
+                    "name": "Paused",
+                    "value": "Paused"
+                  },
+                  {
+                    "name": "Completed",
+                    "value": "Completed"
+                  }
+                ],
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Interval Minutes",
+                "displayName": "Interval Minutes",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "number",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "Next Run Time",
+                "displayName": "Next Run Time",
+                "required": false,
+                "defaultMatch": false,
+                "canBeUsedToMatch": true,
+                "display": true,
+                "type": "dateTime",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.airtable",
+        "typeVersion": 2.1,
+        "position": [
+          480,
+          16
+        ],
+        "id": "91e5418d-23a1-4e5e-8864-2b6d1214b63c",
+        "name": "Update record",
+        "credentials": {
+          "airtableTokenApi": {
+            "id": "XbimsFUgNwhgkhc5",
+            "name": "Airtable Personal Access Token account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "={{ $json.workerId }}",
+            "mode": "id"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "mode": "each",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          272,
+          16
+        ],
+        "id": "c66f7c42-3f58-4f5f-ac0a-d6175d9410a4",
+        "name": "Call 'AIWithLami-TitleSwitch'"
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Search records",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Search records": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript": {
+        "main": [
+          [
+            {
+              "node": "Call 'AIWithLami-TitleSwitch'",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Call 'AIWithLami-TitleSwitch'": {
+        "main": [
+          [
+            {
+              "node": "Update record",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Olamide Agunkejoye",
+    "name": null,
+    "description": null
+  },
   "tags": []
 }
