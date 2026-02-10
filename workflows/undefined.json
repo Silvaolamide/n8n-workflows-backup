@@ -1,7 +1,7 @@
 {
-  "updatedAt": "2026-02-10T09:28:28.385Z",
-  "createdAt": "2026-02-10T09:28:28.385Z",
-  "id": "RSqzmqntnGNQ32ka",
+  "updatedAt": "2026-02-10T08:57:03.195Z",
+  "createdAt": "2026-02-10T08:57:03.195Z",
+  "id": "SgrZMbUHDzzZRIys",
   "name": "Backup-Github",
   "active": false,
   "isArchived": false,
@@ -13,7 +13,7 @@
         "subject": "✅ n8n Workflows Backed Up Successfully",
         "options": {}
       },
-      "id": "90d8120d-67f1-41c0-acec-2ed53ba60fd7",
+      "id": "1953e03c-a99a-44bd-8e15-3a619c488f37",
       "name": "Send Success Email",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
@@ -40,7 +40,7 @@
           ]
         }
       },
-      "id": "2e195010-1afd-4d3e-94de-b4cab6812243",
+      "id": "a8376574-d4a2-4221-8860-09d35f97ed7e",
       "name": "Schedule Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -56,7 +56,7 @@
         "genericAuthType": "httpHeaderAuth",
         "options": {}
       },
-      "id": "da978590-4a35-400f-8a57-3145c7368c3b",
+      "id": "b10b8594-4c33-4057-9144-8f6fab01f89d",
       "name": "Get All Workflows",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -76,7 +76,7 @@
         "fieldToSplitOut": "data",
         "options": {}
       },
-      "id": "bc173f51-bc86-4fa8-89e1-1cdbb7760960",
+      "id": "1786279c-a8bd-4464-a4ab-41f67bdf91bb",
       "name": "Split Into Items",
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
@@ -123,7 +123,7 @@
         },
         "options": {}
       },
-      "id": "139fdfe5-4821-4633-b72d-b132d7ebe695",
+      "id": "0627fbd4-0d9d-4b77-8f74-9f1ec47caf2a",
       "name": "Prepare Individual Workflow",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.3,
@@ -149,7 +149,7 @@
         "filePath": "={{ 'workflows/' + $json.filename }}",
         "additionalParameters": {}
       },
-      "id": "dc506296-b610-46f2-8387-402f9ac06bec",
+      "id": "e4cc5562-52b8-4e58-a68e-c36818ad046b",
       "name": "Check If File Exists",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
@@ -177,7 +177,7 @@
           ]
         }
       },
-      "id": "f5551669-2edb-4ea7-8963-18b33445e930",
+      "id": "b5061848-2fff-4809-84fe-d9533c705a5d",
       "name": "Does File Exist?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
@@ -204,7 +204,7 @@
         "fileContent": "={{ $('Prepare Individual Workflow').item.json.workflowJson }}",
         "commitMessage": "=Update: {{ $('Prepare Individual Workflow').item.json.workflowName }}"
       },
-      "id": "1feaf980-ab89-4ee1-b054-ba66527607c0",
+      "id": "ae20b35a-83e9-40cc-8d48-a9cd2e0eaa46",
       "name": "Update Existing File",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
@@ -237,7 +237,7 @@
         "fileContent": "={{ $('Prepare Individual Workflow').item.json.workflowJson }}",
         "commitMessage": "=Add: {{ $('Prepare Individual Workflow').item.json.workflowName }}"
       },
-      "id": "46bba628-1236-4523-a0ec-b30835faf551",
+      "id": "773d7af1-f0cc-457e-a905-4dae22750387",
       "name": "Create New File",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
@@ -258,7 +258,7 @@
         "aggregate": "aggregateAllItemData",
         "options": {}
       },
-      "id": "a7e42af9-09d3-4b68-8065-c87d5d1ab157",
+      "id": "ed1026c4-b680-41f8-a95f-d61a54277dfd",
       "name": "Wait For All Workflows",
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
@@ -287,7 +287,7 @@
         },
         "options": {}
       },
-      "id": "34af65d9-705c-4455-b303-96e279fdbe9f",
+      "id": "b24b206e-4067-4031-896e-bf6c8f03f871",
       "name": "Prepare Summary",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.3,
@@ -422,15 +422,15 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "129b97cc-42f4-4d74-80ca-eb3f2e1ff58c",
+  "versionId": "66886567-60b4-493c-9455-d8503d6252d1",
   "activeVersionId": null,
   "triggerCount": 0,
   "shared": [
     {
-      "updatedAt": "2026-02-10T09:28:28.500Z",
-      "createdAt": "2026-02-10T09:28:28.500Z",
+      "updatedAt": "2026-02-10T08:57:03.247Z",
+      "createdAt": "2026-02-10T08:57:03.247Z",
       "role": "workflow:owner",
-      "workflowId": "RSqzmqntnGNQ32ka",
+      "workflowId": "SgrZMbUHDzzZRIys",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
