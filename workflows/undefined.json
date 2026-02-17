@@ -1,414 +1,353 @@
 {
-  "updatedAt": "2026-02-10T09:32:11.000Z",
-  "createdAt": "2026-02-10T08:57:03.195Z",
-  "id": "SgrZMbUHDzzZRIys",
-  "name": "Backup-Github",
+  "updatedAt": "2026-01-26T06:07:49.000Z",
+  "createdAt": "2026-01-25T22:56:51.532Z",
+  "id": "MlOpufuV0gElZAM6",
+  "name": "Telegram AI News Agent",
   "active": false,
-  "isArchived": true,
+  "isArchived": false,
   "nodes": [
     {
       "parameters": {
-        "fromEmail": "silvaolamide@gmail.com",
-        "toEmail": "silvaolamide@gmail.com",
-        "subject": "✅ n8n Workflows Backed Up Successfully",
+        "url": "https://news.google.com/rss/search?q=AI+when:1d",
         "options": {}
       },
-      "id": "1953e03c-a99a-44bd-8e15-3a619c488f37",
-      "name": "Send Success Email",
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
-      "position": [
-        608,
-        112
-      ],
-      "webhookId": "eb707b54-35ab-48bc-935c-e5dbfe749698",
-      "credentials": {
-        "smtp": {
-          "id": "gMrmc8ofVmiuWtpf",
-          "name": "SMTP account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "cronExpression",
-              "expression": "0 8,20 * * *"
-            }
-          ]
-        }
-      },
-      "id": "a8376574-d4a2-4221-8860-09d35f97ed7e",
-      "name": "Schedule Trigger",
-      "type": "n8n-nodes-base.scheduleTrigger",
+      "type": "n8n-nodes-base.rssFeedRead",
       "typeVersion": 1.2,
       "position": [
-        -1200,
-        112
-      ]
-    },
-    {
-      "parameters": {
-        "url": "https://drum-fleet-kite.ngrok-free.app/api/v1/workflows",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "options": {}
-      },
-      "id": "b10b8594-4c33-4057-9144-8f6fab01f89d",
-      "name": "Get All Workflows",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -1008,
-        112
+        -320,
+        -16
       ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "VMDZsAZ5J312FKjI",
-          "name": "Header Auth account"
-        }
-      }
+      "id": "67866448-8e9e-4ff1-8a65-5bd8832966c9",
+      "name": "RSS Read"
     },
     {
-      "parameters": {
-        "fieldToSplitOut": "data",
-        "options": {}
-      },
-      "id": "1786279c-a8bd-4464-a4ab-41f67bdf91bb",
-      "name": "Split Into Items",
-      "type": "n8n-nodes-base.splitOut",
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -800,
-        112
-      ]
+        -512,
+        -16
+      ],
+      "id": "5e96e785-b88f-4ff3-8971-d9d23763d262",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -112,
+        -16
+      ],
+      "id": "193032ed-8cfe-494f-b0f4-d2076da1bf6c",
+      "name": "Loop Over Items"
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "a1",
-              "name": "workflowJson",
-              "value": "={{ JSON.stringify($json, null, 2) }}",
+              "id": "44ee5814-9870-49e9-8a30-b9983bed141a",
+              "name": "news_id",
+              "value": "={{ $json.link }}",
               "type": "string"
             },
             {
-              "id": "a2",
-              "name": "workflowName",
-              "value": "={{ $json.name.replace(/[^a-z0-9]/gi, '-').toLowerCase() }}",
+              "id": "f3459c6c-9562-433c-9b7b-3b002557550c",
+              "name": "title",
+              "value": "={{ $json.title }}",
               "type": "string"
             },
             {
-              "id": "a3",
-              "name": "filename",
-              "value": "={{ $json.workflowName + '.json' }}",
+              "id": "f74ece66-ef31-43e2-8822-632403181540",
+              "name": "summary",
+              "value": "={{ $json.contentSnippet }}",
               "type": "string"
             },
             {
-              "id": "a4",
-              "name": "timestamp",
-              "value": "={{ $now.toISO() }}",
-              "type": "string"
-            },
-            {
-              "id": "a5",
-              "name": "workflowId",
-              "value": "={{ $json.id }}",
+              "id": "68f4868a-8ef0-428a-b89b-d5c987b27e51",
+              "name": "link",
+              "value": "={{ $json.link }}",
               "type": "string"
             }
           ]
         },
         "options": {}
       },
-      "id": "0627fbd4-0d9d-4b77-8f74-9f1ec47caf2a",
-      "name": "Prepare Individual Workflow",
       "type": "n8n-nodes-base.set",
-      "typeVersion": 3.3,
+      "typeVersion": 3.4,
       "position": [
-        -608,
-        112
-      ]
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "operation": "get",
-        "owner": {
-          "__rl": true,
-          "value": "Silvaolamide",
-          "mode": "name"
-        },
-        "repository": {
-          "__rl": true,
-          "value": "n8n-workflows-backup",
-          "mode": "name"
-        },
-        "filePath": "={{ 'workflows/' + $json.filename }}",
-        "additionalParameters": {}
-      },
-      "id": "e4cc5562-52b8-4e58-a68e-c36818ad046b",
-      "name": "Check If File Exists",
-      "type": "n8n-nodes-base.github",
-      "typeVersion": 1.1,
-      "position": [
-        -400,
-        112
-      ],
-      "webhookId": "ff34150e-c863-4727-97fd-364440f5b610",
-      "credentials": {
-        "githubApi": {
-          "id": "2kQ4S3JVH5Rr130l",
-          "name": "GitHub account"
-        }
-      },
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "string": [
-            {
-              "value1": "={{ $json.error }}",
-              "operation": "isEmpty"
-            }
-          ]
-        }
-      },
-      "id": "b5061848-2fff-4809-84fe-d9533c705a5d",
-      "name": "Does File Exist?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [
-        -192,
-        112
-      ]
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "operation": "edit",
-        "owner": {
-          "__rl": true,
-          "value": "Silvaolamide",
-          "mode": "name"
-        },
-        "repository": {
-          "__rl": true,
-          "value": "n8n-workflows-backup",
-          "mode": "name"
-        },
-        "filePath": "={{ 'workflows/' + $('Prepare Individual Workflow').item.json.filename }}",
-        "fileContent": "={{ $('Prepare Individual Workflow').item.json.workflowJson }}",
-        "commitMessage": "=Update: {{ $('Prepare Individual Workflow').item.json.workflowName }}"
-      },
-      "id": "ae20b35a-83e9-40cc-8d48-a9cd2e0eaa46",
-      "name": "Update Existing File",
-      "type": "n8n-nodes-base.github",
-      "typeVersion": 1.1,
-      "position": [
-        0,
+        144,
         0
       ],
-      "webhookId": "0dd6dba6-3920-4373-8c53-778dfed53663",
-      "credentials": {
-        "githubApi": {
-          "id": "2kQ4S3JVH5Rr130l",
-          "name": "GitHub account"
-        }
-      }
+      "id": "dc3cb24b-13e3-44bd-acdd-369fc24d772e",
+      "name": "Edit Fields"
     },
     {
       "parameters": {
-        "resource": "file",
-        "owner": {
+        "dataTableId": {
           "__rl": true,
-          "value": "Silvaolamide",
-          "mode": "name"
+          "value": "rWKas71hsOPEFuse",
+          "mode": "list",
+          "cachedResultName": "smagent",
+          "cachedResultUrl": "/projects/f2EbmniIBR8oZwzD/datatables/rWKas71hsOPEFuse"
         },
-        "repository": {
-          "__rl": true,
-          "value": "n8n-workflows-backup",
-          "mode": "name"
-        },
-        "filePath": "={{ 'workflows/' + $('Prepare Individual Workflow').item.json.filename }}",
-        "fileContent": "={{ $('Prepare Individual Workflow').item.json.workflowJson }}",
-        "commitMessage": "=Add: {{ $('Prepare Individual Workflow').item.json.workflowName }}"
-      },
-      "id": "773d7af1-f0cc-457e-a905-4dae22750387",
-      "name": "Create New File",
-      "type": "n8n-nodes-base.github",
-      "typeVersion": 1.1,
-      "position": [
-        0,
-        208
-      ],
-      "webhookId": "9e4fcb47-1111-4034-aed8-d8e60dc03906",
-      "credentials": {
-        "githubApi": {
-          "id": "2kQ4S3JVH5Rr130l",
-          "name": "GitHub account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "aggregate": "aggregateAllItemData",
-        "options": {}
-      },
-      "id": "ed1026c4-b680-41f8-a95f-d61a54277dfd",
-      "name": "Wait For All Workflows",
-      "type": "n8n-nodes-base.aggregate",
-      "typeVersion": 1,
-      "position": [
-        208,
-        112
-      ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
             {
-              "id": "total-count",
-              "name": "totalWorkflows",
-              "value": "={{ $json.length }}",
-              "type": "number"
+              "id": "news_id",
+              "displayName": "news_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
             },
             {
-              "id": "timestamp",
-              "name": "timestamp",
-              "value": "={{ $now.toISO() }}",
-              "type": "string"
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        944,
+        32
+      ],
+      "id": "e8ba55d3-06db-4dac-99bc-d8de4bd73745",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "rWKas71hsOPEFuse",
+          "mode": "list",
+          "cachedResultName": "smagent",
+          "cachedResultUrl": "/projects/f2EbmniIBR8oZwzD/datatables/rWKas71hsOPEFuse"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "link"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -16
+      ],
+      "id": "5de94afb-a9a8-4019-9f3c-f633b182701f",
+      "name": "If row does not exist"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer $OPENROUTER_API_KEY"
             }
           ]
         },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"google/gemma-3n-e4b-it:free\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are a social media strategist.\\n\\nNews:\\n{{ $json.title }}\\n{{ $json.summary }}\\n\\nWrite:\\n1. LinkedIn post\\n2. Twitter/X post\\n3. Facebook post\\n\\nRules:\\n- Clear\\n- Non-repetitive\\n- 3–5 hashtags\"\n    }\n  ],\n  \"temperature\": 0.7,\n  \"max_tokens\": 500\n} ",
         "options": {}
       },
-      "id": "b24b206e-4067-4031-896e-bf6c8f03f871",
-      "name": "Prepare Summary",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.3,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
       "position": [
-        400,
-        112
-      ]
+        544,
+        0
+      ],
+      "id": "62374ed4-2e06-416f-a1b7-8ceee6c7c52a",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "JFQ7Arg0WYsup3AP",
+          "name": "openRouter"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "321129994",
+        "text": "=📰 *{{ $('Edit Fields').item.json.title }}*  🔗 {{ $('Edit Fields').item.json.link }}  🔹 Content: {{ $json.choices[0].message.content }} 🔹",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        752,
+        16
+      ],
+      "id": "d947558e-33f4-41d2-9b36-0e9102630a1e",
+      "name": "Send a text message",
+      "webhookId": "6e5664c2-a9d9-4688-9ec0-e31298aabbe3",
+      "credentials": {
+        "telegramApi": {
+          "id": "JWBWYkchIsouEBi5",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1184,
+        32
+      ],
+      "id": "e5a48cff-06e3-4a4c-ab94-b21b67bcfb8f",
+      "name": "Wait",
+      "webhookId": "0cbfa173-2c55-4ae9-ab8c-c43eda69be8c"
     }
   ],
   "connections": {
-    "Schedule Trigger": {
+    "RSS Read": {
       "main": [
         [
           {
-            "node": "Get All Workflows",
+            "node": "Loop Over Items",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get All Workflows": {
+    "When clicking ‘Execute workflow’": {
       "main": [
         [
           {
-            "node": "Split Into Items",
+            "node": "RSS Read",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Split Into Items": {
+    "Loop Over Items": {
       "main": [
+        [],
         [
           {
-            "node": "Prepare Individual Workflow",
+            "node": "Edit Fields",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Prepare Individual Workflow": {
+    "Edit Fields": {
       "main": [
         [
           {
-            "node": "Check If File Exists",
+            "node": "If row does not exist",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Check If File Exists": {
+    "Insert row": {
       "main": [
         [
           {
-            "node": "Does File Exist?",
+            "node": "Wait",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Does File Exist?": {
+    "If row does not exist": {
       "main": [
         [
           {
-            "node": "Update Existing File",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Create New File",
+            "node": "HTTP Request",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Update Existing File": {
+    "HTTP Request": {
       "main": [
         [
           {
-            "node": "Wait For All Workflows",
+            "node": "Send a text message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Create New File": {
+    "Send a text message": {
       "main": [
         [
           {
-            "node": "Wait For All Workflows",
+            "node": "Insert row",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Wait For All Workflows": {
+    "Wait": {
       "main": [
         [
           {
-            "node": "Prepare Summary",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Prepare Summary": {
-      "main": [
-        [
-          {
-            "node": "Send Success Email",
+            "node": "Loop Over Items",
             "type": "main",
             "index": 0
           }
@@ -420,17 +359,19 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "pinData": {},
-  "versionId": "e1b09aab-471d-426b-8c46-dfaa791fa918",
+  "versionId": "cff09e40-e41f-499f-a722-ae5210b86796",
   "activeVersionId": null,
   "triggerCount": 0,
   "shared": [
     {
-      "updatedAt": "2026-02-10T08:57:03.247Z",
-      "createdAt": "2026-02-10T08:57:03.247Z",
+      "updatedAt": "2026-01-25T22:56:51.566Z",
+      "createdAt": "2026-01-25T22:56:51.566Z",
       "role": "workflow:owner",
-      "workflowId": "SgrZMbUHDzzZRIys",
+      "workflowId": "MlOpufuV0gElZAM6",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
