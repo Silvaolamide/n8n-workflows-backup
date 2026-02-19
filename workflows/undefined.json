@@ -1,435 +1,114 @@
 {
-  "updatedAt": "2026-01-07T09:17:46.419Z",
-  "createdAt": "2026-01-07T09:17:46.419Z",
-  "id": "cLjt5Mfl2PRz9U9y",
-  "name": "Courselamy",
+  "updatedAt": "2026-01-26T06:07:49.000Z",
+  "createdAt": "2026-01-25T22:56:51.532Z",
+  "id": "MlOpufuV0gElZAM6",
+  "name": "Telegram AI News Agent",
   "active": false,
   "isArchived": false,
   "nodes": [
     {
       "parameters": {
-        "triggerTimes": {
-          "item": [
-            {
-              "mode": "everyX",
-              "value": 30,
-              "unit": "minutes"
-            }
-          ]
-        }
+        "url": "https://news.google.com/rss/search?q=AI+when:1d",
+        "options": {}
       },
-      "id": "f28da8ac-f1c2-4e1d-a493-98d38a9f7214",
-      "name": "Schedule Trigger1",
-      "type": "n8n-nodes-base.cron",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
       "position": [
-        -1472,
-        384
+        -320,
+        -16
       ],
-      "retryOnFail": true,
-      "maxTries": 5,
-      "waitBetweenTries": 5000
+      "id": "67866448-8e9e-4ff1-8a65-5bd8832966c9",
+      "name": "RSS Read"
     },
     {
-      "parameters": {
-        "url": "https://www.discudemy.com/feed/",
-        "responseFormat": "string",
-        "options": {}
-      },
-      "id": "fbff07cf-9be1-4dfd-adb1-8b2e26fd6051",
-      "name": "Fetch RSS1",
-      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -1248,
-        384
-      ]
+        -512,
+        -16
+      ],
+      "id": "5e96e785-b88f-4ff3-8971-d9d23763d262",
+      "name": "When clicking ‘Execute workflow’"
     },
     {
       "parameters": {
         "options": {}
       },
-      "id": "682bd361-df21-4de7-b498-76f3a6e3ef0d",
-      "name": "XML → JSON1",
-      "type": "n8n-nodes-base.xml",
-      "typeVersion": 1,
-      "position": [
-        -1024,
-        384
-      ]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Access workflow static data in global scope\nconst seen = getWorkflowStaticData('global');\n\nconst courseId = $json.link;\n\nif (!seen.courses) {\n  seen.courses = [];\n}\n\nif (seen.courses.includes(courseId)) {\n  return [];\n}\n\nseen.courses.push(courseId);\n\nreturn [ { json: $json } ];"
-      },
-      "id": "2e6ea0f9-7ba2-47eb-9f8b-c406280e4fc3",
-      "name": "Filter Seen Courses",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        -800,
-        384
-      ]
-    },
-    {
-      "parameters": {
-        "functionCode": "const items = $json.rss.channel.item;\n\nreturn items.map(course => {\n  const link = String(course.link || \"\");\n  // strip origin\n  const slug = link.replace(/^https?:\\/\\/www\\.discudemy\\.com\\//, \"\").replace(/^\\/+/, \"\");\n  // last part after category\n  const lastPart = slug.split(\"/\").filter(Boolean).pop();\n  const goLink = `https://www.discudemy.com/go/${lastPart}`;\n\n  return {\n    json: {\n      ...course,\n      goLink\n    }\n  };\n});"
-      },
-      "id": "bf497d07-bd58-4e02-9dc7-3fa69406c3b7",
-      "name": "Build Go Link",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        -576,
-        384
-      ]
-    },
-    {
-      "parameters": {
-        "url": "={{$json.goLink}}",
-        "options": {}
-      },
-      "id": "5f330e50-2726-4166-b944-0196f5018950",
-      "name": "Fetch Go Page",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -480,
-        608
-      ]
-    },
-    {
-      "parameters": {
-        "functionCode": "const items = $items(\"Fetch Go Page\");\n\nreturn items.map((item, index) => {\n  const html = item.json.data;\n\n  const regex = /https:\\/\\/www\\.udemy\\.com\\/course\\/[^\\s\"'<>?]+[^\"'<>]*/g;\n  const match = html.match(regex);\n\n  return {\n    json: {\n      index,\n      udemyLink: match ? match[0] : null\n    }\n  };\n});"
-      },
-      "id": "81bd2fd8-22ff-4334-9f09-b4ef8ec36a8f",
-      "name": "Extract Udemy Link",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        -352,
-        608
-      ]
-    },
-    {
-      "parameters": {
-        "mode": "combine",
-        "combinationMode": "mergeByPosition",
-        "options": {}
-      },
-      "id": "b842bdd2-1d86-4099-9bb3-de54d207f4f8",
-      "name": "Merge Course + Udemy1",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 2,
-      "position": [
-        -192,
-        400
-      ]
-    },
-    {
-      "parameters": {
-        "url": "={{ $json.link }}",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "string"
-            }
-          }
-        }
-      },
-      "id": "f437c49f-5c17-40a0-bd34-8e2383affb19",
-      "name": "Fetch Discudemy Course Page",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        0,
-        400
-      ]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Extract Udemy image URL from Discudemy page HTML - PRESERVE UNDERSCORES\nconst items = $input.all();\nconst courseItems = $items('Merge Course + Udemy1');\n\nreturn items.map((item, index) => {\n  const courseData = courseItems[index].json;\n  const html = item.json.data || item.json || '';\n  \n  let udemyImageUrl = null;\n  \n  // Method 1: Direct Udemy CDN patterns for 480x270 images - DON'T MODIFY THE URL\n  const cdnPattern = /https:\\/\\/img-[a-z]\\.udemycdn\\.com\\/course\\/480x270\\/[0-9]+_[a-zA-Z0-9_]+\\.(jpg|jpeg|png|webp)/i;\n  let match = html.match(cdnPattern);\n  \n  if (match) {\n    udemyImageUrl = match[0];\n  } else {\n    // Method 2: Any Udemy CDN image - DON'T MODIFY THE URL\n    const anyUdemyPattern = /https:\\/\\/img-[a-z]\\.udemycdn\\.com\\/course\\/[^\\/]+\\/[0-9]+_[a-zA-Z0-9_]+\\.(jpg|jpeg|png|webp)/gi;\n    const matches = html.match(anyUdemyPattern);\n    \n    if (matches && matches.length > 0) {\n      // Get the first match - PRESERVE ORIGINAL URL WITH UNDERSCORES\n      udemyImageUrl = matches[0];\n    } else {\n      // Method 3: Look in meta tags\n      const metaPatterns = [\n        /<meta\\s+property=\"og:image\"\\s+content=\"([^\"]+udemycdn[^\"]+)\"/i,\n        /<meta\\s+name=\"twitter:image\"\\s+content=\"([^\"]+udemycdn[^\"]+)\"/i\n      ];\n      \n      for (const pattern of metaPatterns) {\n        match = html.match(pattern);\n        if (match) {\n          udemyImageUrl = match[1]; // PRESERVE ORIGINAL URL\n          break;\n        }\n      }\n      \n      // Method 4: Look for any image in img tags\n      if (!udemyImageUrl) {\n        const imgPattern = /<img[^>]+src=\"([^\"]+udemycdn[^\"]+)\"/gi;\n        const imgMatches = [...html.matchAll(imgPattern)];\n        if (imgMatches.length > 0) {\n          udemyImageUrl = imgMatches[0][1]; // PRESERVE ORIGINAL URL\n        }\n      }\n    }\n  }\n  \n  // Clean URL - but preserve underscores\n  if (udemyImageUrl) {\n    udemyImageUrl = udemyImageUrl.split('?')[0];\n  }\n  \n  console.log('Extracted image for course:', courseData.title, '- Image:', udemyImageUrl);\n  \n  return {\n    json: {\n      ...courseData,\n      udemyImageUrl: udemyImageUrl,\n      extractedUdemyImageUrl: udemyImageUrl,\n      hasUdemyImage: !!udemyImageUrl\n    }\n  };\n});"
-      },
-      "id": "6cf27db9-1bce-4b52-b29e-f24114a7b48d",
-      "name": "Extract Udemy Image URL",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        192,
-        400
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 1
-          },
-          "conditions": [
-            {
-              "id": "1",
-              "leftValue": "={{ $json.udemyLink }}",
-              "rightValue": "null",
-              "operator": {
-                "type": "string",
-                "operation": "notEquals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "e7892f98-df4d-4725-b623-0787cc696761",
-      "name": "Filter Valid Courses1",
-      "type": "n8n-nodes-base.filter",
-      "typeVersion": 2,
-      "position": [
-        0,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0",
-          "mode": "id"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "https://docs.google.com/spreadsheets/d/1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0/edit?pli=1&gid=0#gid=0",
-          "mode": "url"
-        },
-        "options": {}
-      },
-      "id": "8acf9305-919e-40ce-91d6-f2baf505b671",
-      "name": "Read Existing Courses1",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4,
-      "position": [
-        208,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Get all existing udemyLinks from the sheet\nconst existingRecords = $items(\"Read Existing Courses1\");\nconst existingLinks = new Set(\n  existingRecords.map(record => record.json.udemyLink).filter(link => link)\n);\n\n// Get incoming courses\nconst incomingCourses = $items(\"Filter Valid Courses1\");\n\n// Filter out courses that already exist in the sheet\nconst newCourses = incomingCourses.filter(course => {\n  const udemyLink = course.json.udemyLink;\n  return udemyLink && !existingLinks.has(udemyLink);\n});\n\nreturn newCourses;"
-      },
-      "id": "7d4ca60b-32f4-4d20-9276-44cab19b9662",
-      "name": "Filter New Courses Only1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        416,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "url": "={{ 'https://courselamy.site/wp-json/wp/v2/categories?search=' + encodeURIComponent(($json.category && (typeof $json.category === 'string' ? $json.category : $json.category._ || $json.category['#text'] || $json.category.text || '')) || '').toLowerCase() + '&per_page=100' }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpBasicAuth",
-        "options": {
-          "response": {
-            "response": {
-              "neverError": true
-            }
-          }
-        }
-      },
-      "id": "03b3531d-aa86-4f2b-9a45-bd5c35a09f68",
-      "name": "Check Category Exists",
-      "type": "n8n-nodes-base.httpRequest",
+      "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        624,
-        0
+        -112,
+        -16
       ],
-      "alwaysOutputData": true
+      "id": "193032ed-8cfe-494f-b0f4-d2076da1bf6c",
+      "name": "Loop Over Items"
     },
     {
       "parameters": {
-        "functionCode": "// Process category check results with exact matching - ENSURE ALL COURSES CONTINUE\nconst items = $input.all();\nconst courseItems = $items('Filter New Courses Only1');\n\n// Ensure we only process matching items\nconst minLength = Math.min(items.length, courseItems.length);\n\nreturn items.slice(0, minLength).map((item, index) => {\n  const courseData = courseItems[index].json;\n  const response = item.json;\n  \n  let categoryId = null;\n  \n  // Safely extract category name - handle both string and object types\n  let categoryName = '';\n  if (typeof courseData.category === 'string') {\n    categoryName = courseData.category;\n  } else if (courseData.category && typeof courseData.category === 'object') {\n    // If it's an object, try to get the text content\n    categoryName = courseData.category._ || courseData.category['#text'] || courseData.category.text || '';\n  }\n  \n  const searchCategory = categoryName.toLowerCase().trim();\n  \n  // Check if category already exists with exact name match\n  if (Array.isArray(response) && response.length > 0) {\n    // Find exact match (case insensitive)\n    const exactMatch = response.find(cat => {\n      const catName = (cat.name || '').toLowerCase().trim();\n      return catName === searchCategory && searchCategory !== '';\n    });\n    categoryId = exactMatch ? exactMatch.id : null;\n  } else if (response && response.id) {\n    categoryId = response.id;\n  }\n  \n  console.log('Category check for:', categoryName, '- Found ID:', categoryId, '- Exact match:', !!categoryId);\n  \n  return {\n    json: {\n      ...courseData,\n      category: categoryName, // Ensure category is always a string\n      existingCategoryId: categoryId,\n      needsCategoryCreation: Boolean(!categoryId && searchCategory),\n      ldCategoryId: categoryId || null,\n      categoryName: searchCategory\n    }\n  };\n});"
-      },
-      "id": "0ba97c2c-3cd1-4638-a1e4-ae7369e0930e",
-      "name": "Process Category Check",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        832,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 1
-          },
-          "conditions": [
+        "assignments": {
+          "assignments": [
             {
-              "id": "1",
-              "leftValue": "={{ $json.needsCategoryCreation }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "43634f5c-6c48-4436-a1e1-1e5089b14ad2",
-      "name": "Filter Needs Category Creation",
-      "type": "n8n-nodes-base.filter",
-      "typeVersion": 2,
-      "position": [
-        720,
-        608
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://courselamy.site/wp-json/wp/v2/categories",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpBasicAuth",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "name",
-              "value": "={{ (($json.category && (typeof $json.category === 'string' ? $json.category : $json.category._ || $json.category['#text'] || $json.category.text || '')) || '').replace(/\\\\s*\\\\[100% OFF\\\\]\\\\s*/gi, '').trim() }}"
+              "id": "44ee5814-9870-49e9-8a30-b9983bed141a",
+              "name": "news_id",
+              "value": "={{ $json.link }}",
+              "type": "string"
             },
             {
-              "name": "slug",
-              "value": "={{ (($json.category && (typeof $json.category === 'string' ? $json.category : $json.category._ || $json.category['#text'] || $json.category.text || '')) || '').replace(/\\\\s*\\\\[100% OFF\\\\]\\\\s*/gi, '').toLowerCase().trim().replace(/\\\\s+/g, '-') }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "efb06bd4-ef84-4660-b53a-eb356c723954",
-      "name": "Create New Category",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
-      "position": [
-        928,
-        608
-      ]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Extract new category ID and merge with original data - with error handling\nconst items = $input.all();\nconst courseItems = $items('Filter Needs Category Creation');\n\nreturn items.map((item, index) => {\n  const courseData = courseItems[index].json;\n  const response = item.json;\n  \n  // If creation failed with \"term exists\" error, try to fetch the existing category\n  if (response && response.code === 'term_exists') {\n    console.log('Category already exists, using existing ID:', response.data.term_id);\n    return {\n      json: {\n        ...courseData,\n        ldCategoryId: response.data.term_id,\n        categoryCreated: false, // wasn't created by us\n        categoryAlreadyExists: true\n      }\n    };\n  }\n  \n  if (response && response.id) {\n    return {\n      json: {\n        ...courseData,\n        ldCategoryId: response.id,\n        categoryCreated: true\n      }\n    };\n  }\n  \n  // If we get here, category creation failed for another reason\n  console.log('Category creation failed:', response);\n  return {\n    json: {\n      ...courseData,\n      categoryCreated: false,\n      creationError: response\n    }\n  };\n});"
-      },
-      "id": "078ef489-5a57-421c-966b-9601c7ef8d44",
-      "name": "Extract Category ID",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        1136,
-        608
-      ]
-    },
-    {
-      "parameters": {
-        "mode": "combine",
-        "combinationMode": "mergeByPosition",
-        "options": {}
-      },
-      "id": "d1f44b6b-4976-46cd-bfaf-a08a776d6c5a",
-      "name": "Merge Category Data",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 2,
-      "position": [
-        1344,
-        448
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://courselamy.site/wp-json/ldlms/v1/sfwd-courses",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpBasicAuth",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
+              "id": "f3459c6c-9562-433c-9b7b-3b002557550c",
               "name": "title",
-              "value": "={{ $json.title.replace(/\\s*\\[\\s*100%\\s*OFF\\s*\\]\\s*/gi, '').trim() }}"
+              "value": "={{ $json.title }}",
+              "type": "string"
             },
             {
-              "name": "content",
-              "value": "={{ \n  (\n    $json.udemyImageUrl \n      ? '<div style=\"text-align: center; margin-bottom: 20px;\"><img src=\"' + $json.udemyImageUrl + '\" alt=\"Course Image\" style=\"max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);\"/></div>' \n      : ($json.enclosure || $json.image \n        ? '<div style=\"text-align: center; margin-bottom: 20px;\"><img src=\"' + ($json.enclosure?.url || $json.image) + '\" alt=\"Course Image\" style=\"max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);\"/></div>' \n        : '')\n  ) \n  + (\n    $json.description \n      ? $json.description\n          .replace(/<p><a rel=\"nofollow\" href=\"[^\"]+\">\\s*\\[100% OFF\\]\\s*[^<]+<\\/a><\\/p>\\s*/gi, \"\") \n          .replace(/https?:\\/\\/www\\.discudemy\\.com\\/[^\\s\"'<]+/gi, '') // REMOVE DISCUDEMY LINKS\n      : ''\n  ) \n  + '<br/><br/><div style=\"background-color: #f0f0f0; padding: 15px; border-radius: 5px; margin-top: 20px;\"><strong>🎓 Enrol for Course:</strong> <a href=\"' + ($json.udemyLink || '') + '\" target=\"_blank\" style=\"color: #0073aa; text-decoration: none; font-weight: bold;\">' + ($json.udemyLink || '') + '</a></div>'\n}}"
+              "id": "f74ece66-ef31-43e2-8822-632403181540",
+              "name": "summary",
+              "value": "={{ $json.contentSnippet }}",
+              "type": "string"
             },
             {
-              "name": "status",
-              "value": "publish"
-            },
-            {
-              "name": "categories",
-              "value": "={{ $json.ldCategoryId || '' }}"
-            },
-            {
-              "name": "meta",
-              "value": "={{ { course_image_url: $json.udemyImageUrl || $json.enclosure || $json.image || '', learndash_course_image: $json.udemyImageUrl || $json.enclosure || $json.image || '' } }}"
+              "id": "68f4868a-8ef0-428a-b89b-d5c987b27e51",
+              "name": "link",
+              "value": "={{ $json.link }}",
+              "type": "string"
             }
           ]
         },
         "options": {}
       },
-      "name": "Create LearnDash Course1",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
       "position": [
-        1552,
-        448
+        144,
+        0
       ],
-      "id": "1eb1b748-7bdf-42cf-a999-1929ca637b1c"
+      "id": "dc3cb24b-13e3-44bd-acdd-369fc24d772e",
+      "name": "Edit Fields"
     },
     {
       "parameters": {
-        "functionCode": "// Extract LearnDash course link from response - Process ALL items\nconst allResponses = $input.all();\nconst allOriginalData = $items(\"Merge Category Data\");\nconst results = [];\n\nfor (let i = 0; i < allResponses.length; i++) {\n  const response = allResponses[i].json;\n  const originalCourse = allOriginalData[i].json;\n  \n  if (response && response.id) {\n    const learnDashLink = `https://courselamy.site/courses/${response.slug || response.id}/`;\n    \n    results.push({\n      json: {\n        ...originalCourse,\n        learnDashLink: learnDashLink,\n        learnDashId: response.id,\n        learnDashSlug: response.slug\n      }\n    });\n  } else {\n    results.push({\n      json: {\n        ...originalCourse,\n        learnDashLink: null,\n        learnDashId: null\n      }\n    });\n  }\n}\n\nreturn results;"
-      },
-      "id": "b711c52f-2f5b-432f-b430-47ce2a60b1d6",
-      "name": "Extract LearnDash Link1",
-      "type": "n8n-nodes-base.function",
-      "typeVersion": 1,
-      "position": [
-        1760,
-        448
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "appendOrUpdate",
-        "documentId": {
+        "dataTableId": {
           "__rl": true,
-          "value": "1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0",
-          "mode": "id"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "https://docs.google.com/spreadsheets/d/1RC_LstdN8XQKEHJqA3V9dh4faEKLWWoAyyfKxG2Ikl0/edit?pli=1&gid=0#gid=0",
-          "mode": "url"
+          "value": "rWKas71hsOPEFuse",
+          "mode": "list",
+          "cachedResultName": "smagent",
+          "cachedResultUrl": "/projects/f2EbmniIBR8oZwzD/datatables/rWKas71hsOPEFuse"
         },
         "columns": {
-          "mappingMode": "autoMapInputData",
+          "mappingMode": "defineBelow",
           "value": {},
-          "matchingColumns": [
-            "udemyLink"
-          ],
+          "matchingColumns": [],
           "schema": [
+            {
+              "id": "news_id",
+              "displayName": "news_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
             {
               "id": "title",
               "displayName": "title",
@@ -437,70 +116,127 @@
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "readOnly": false,
+              "removed": false
             },
             {
-              "id": "udemyLink",
-              "displayName": "udemyLink",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "category",
-              "displayName": "category",
+              "id": "summary",
+              "displayName": "summary",
               "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": true
+              "readOnly": false,
+              "removed": false
             },
             {
-              "id": "udemyImageUrl",
-              "displayName": "udemyImageUrl",
+              "id": "link",
+              "displayName": "link",
               "required": false,
               "defaultMatch": false,
               "display": true,
               "type": "string",
-              "canBeUsedToMatch": false
-            },
-            {
-              "id": "learnDashLink",
-              "displayName": "learnDashLink",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": false
+              "readOnly": false,
+              "removed": false
             }
-          ]
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
         },
         "options": {}
       },
-      "id": "ebe7cb26-10ba-4ba5-8e92-9146db05bdaf",
-      "name": "Save to Google Sheets1",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4,
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
       "position": [
-        1952,
-        240
-      ]
+        944,
+        32
+      ],
+      "id": "e8ba55d3-06db-4dac-99bc-d8de4bd73745",
+      "name": "Insert row"
     },
     {
       "parameters": {
-        "url": "={{ $json.udemyImageUrl }}",
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "rWKas71hsOPEFuse",
+          "mode": "list",
+          "cachedResultName": "smagent",
+          "cachedResultUrl": "/projects/f2EbmniIBR8oZwzD/datatables/rWKas71hsOPEFuse"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "link"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -16
+      ],
+      "id": "5de94afb-a9a8-4019-9f3c-f633b182701f",
+      "name": "If row does not exist"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer $OPENROUTER_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"google/gemma-3n-e4b-it:free\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are a social media strategist.\\n\\nNews:\\n{{ $json.title }}\\n{{ $json.summary }}\\n\\nWrite:\\n1. LinkedIn post\\n2. Twitter/X post\\n3. Facebook post\\n\\nRules:\\n- Clear\\n- Non-repetitive\\n- 3–5 hashtags\"\n    }\n  ],\n  \"temperature\": 0.7,\n  \"max_tokens\": 500\n} ",
         "options": {}
       },
-      "id": "a5e13448-ba1d-4b2d-8a91-5a099bf45fdd",
-      "name": "Download Udemy Image",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "typeVersion": 4.3,
       "position": [
-        2112,
-        448
-      ]
+        544,
+        0
+      ],
+      "id": "62374ed4-2e06-416f-a1b7-8ceee6c7c52a",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "JFQ7Arg0WYsup3AP",
+          "name": "openRouter"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "321129994",
+        "text": "=📰 *{{ $('Edit Fields').item.json.title }}*  🔗 {{ $('Edit Fields').item.json.link }}  🔹 Content: {{ $json.choices[0].message.content }} 🔹",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        752,
+        16
+      ],
+      "id": "d947558e-33f4-41d2-9b36-0e9102630a1e",
+      "name": "Send a text message",
+      "webhookId": "6e5664c2-a9d9-4688-9ec0-e31298aabbe3",
+      "credentials": {
+        "telegramApi": {
+          "id": "JWBWYkchIsouEBi5",
+          "name": "Telegram account"
+        }
+      }
     },
     {
       "parameters": {
@@ -509,302 +245,98 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        2848,
-        464
+        1184,
+        32
       ],
-      "id": "afe16d44-a59f-4afa-9628-8607fd4c8847",
+      "id": "e5a48cff-06e3-4a4c-ab94-b21b67bcfb8f",
       "name": "Wait",
-      "webhookId": "f402991d-9b20-49ec-94a5-13a470225c17",
-      "executeOnce": false
-    },
-    {
-      "parameters": {
-        "options": {
-          "reset": false
-        }
-      },
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        2320,
-        448
-      ],
-      "id": "43af6d7c-471a-4a48-8b78-daa1ccd32995",
-      "name": "Loop Over Items"
-    },
-    {
-      "parameters": {
-        "text": "={{ `🎓 ${$json.title.replace(/\\s*\\[\\s*100%\\s*OFF\\s*\\]\\s*/gi, '').trim().replace(/([_*[\\]()~`>#+\\-=|{}.!])/g, '\\\\$1')}\\n\\n🎯 Category: ${$json.category || 'General'}\\n🌐 Course Page: ${$json.learnDashLink || 'Check our website for details!'}\\n\\n#Udemy #FreeCourse #${($json.category || 'Learning').replace(/[^a-zA-Z0-9]/g, '')} #OnlineLearning` }}",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.twitter",
-      "typeVersion": 2,
-      "position": [
-        2592,
-        464
-      ],
-      "id": "76aeed50-837a-429f-a04e-526481c0b588",
-      "name": "Create Tweet2"
+      "webhookId": "0cbfa173-2c55-4ae9-ab8c-c43eda69be8c"
     }
   ],
   "connections": {
-    "Schedule Trigger1": {
-      "main": [
-        [
-          {
-            "node": "Fetch RSS1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch RSS1": {
-      "main": [
-        [
-          {
-            "node": "XML → JSON1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "XML → JSON1": {
-      "main": [
-        [
-          {
-            "node": "Filter Seen Courses",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Filter Seen Courses": {
-      "main": [
-        [
-          {
-            "node": "Build Go Link",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Build Go Link": {
-      "main": [
-        [
-          {
-            "node": "Merge Course + Udemy1",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Fetch Go Page",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch Go Page": {
-      "main": [
-        [
-          {
-            "node": "Extract Udemy Link",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract Udemy Link": {
-      "main": [
-        [
-          {
-            "node": "Merge Course + Udemy1",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Merge Course + Udemy1": {
-      "main": [
-        [
-          {
-            "node": "Fetch Discudemy Course Page",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch Discudemy Course Page": {
-      "main": [
-        [
-          {
-            "node": "Extract Udemy Image URL",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract Udemy Image URL": {
-      "main": [
-        [
-          {
-            "node": "Filter Valid Courses1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Filter Valid Courses1": {
-      "main": [
-        [
-          {
-            "node": "Read Existing Courses1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Read Existing Courses1": {
-      "main": [
-        [
-          {
-            "node": "Filter New Courses Only1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Filter New Courses Only1": {
-      "main": [
-        [
-          {
-            "node": "Check Category Exists",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Check Category Exists": {
-      "main": [
-        [
-          {
-            "node": "Process Category Check",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Process Category Check": {
-      "main": [
-        [
-          {
-            "node": "Merge Category Data",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Filter Needs Category Creation",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Filter Needs Category Creation": {
-      "main": [
-        [
-          {
-            "node": "Create New Category",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Create New Category": {
-      "main": [
-        [
-          {
-            "node": "Extract Category ID",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract Category ID": {
-      "main": [
-        [
-          {
-            "node": "Merge Category Data",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Merge Category Data": {
-      "main": [
-        [
-          {
-            "node": "Create LearnDash Course1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Create LearnDash Course1": {
-      "main": [
-        [
-          {
-            "node": "Extract LearnDash Link1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract LearnDash Link1": {
-      "main": [
-        [
-          {
-            "node": "Save to Google Sheets1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Save to Google Sheets1": {
-      "main": [
-        [
-          {
-            "node": "Download Udemy Image",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Download Udemy Image": {
+    "RSS Read": {
       "main": [
         [
           {
             "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If row does not exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert row": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If row does not exist": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
             "type": "main",
             "index": 0
           }
@@ -821,46 +353,25 @@
           }
         ]
       ]
-    },
-    "Loop Over Items": {
-      "main": [
-        [],
-        [
-          {
-            "node": "Create Tweet2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Create Tweet2": {
-      "main": [
-        [
-          {
-            "node": "Wait",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
   "settings": {
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "pinData": {},
-  "versionId": "df8fe1d0-b293-445a-952a-973b61340d93",
+  "versionId": "cff09e40-e41f-499f-a722-ae5210b86796",
   "activeVersionId": null,
   "triggerCount": 0,
   "shared": [
     {
-      "updatedAt": "2026-01-07T09:17:46.902Z",
-      "createdAt": "2026-01-07T09:17:46.902Z",
+      "updatedAt": "2026-01-25T22:56:51.566Z",
+      "createdAt": "2026-01-25T22:56:51.566Z",
       "role": "workflow:owner",
-      "workflowId": "cLjt5Mfl2PRz9U9y",
+      "workflowId": "MlOpufuV0gElZAM6",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
