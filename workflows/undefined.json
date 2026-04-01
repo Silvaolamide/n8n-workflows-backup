@@ -1,303 +1,353 @@
 {
-  "updatedAt": "2025-12-13T17:27:20.000Z",
-  "createdAt": "2025-12-13T12:24:10.237Z",
-  "id": "xZPLZsUwVDggemcZ",
-  "name": "APN Certificate Bot",
+  "updatedAt": "2026-01-26T06:07:49.000Z",
+  "createdAt": "2026-01-25T22:56:51.532Z",
+  "id": "MlOpufuV0gElZAM6",
+  "name": "Telegram AI News Agent",
   "active": false,
   "isArchived": false,
   "nodes": [
     {
       "parameters": {
-        "updates": [
-          "messages"
-        ],
+        "url": "https://news.google.com/rss/search?q=AI+when:1d",
         "options": {}
       },
-      "type": "n8n-nodes-base.whatsAppTrigger",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -320,
+        -16
+      ],
+      "id": "67866448-8e9e-4ff1-8a65-5bd8832966c9",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -1184,
-        -96
+        -512,
+        -16
       ],
-      "id": "b2a9bb9e-de34-4555-b251-b3d7c12d3f58",
-      "name": "WhatsApp Trigger",
-      "webhookId": "ea79b380-4d12-4dcc-b8b5-3bca82d732e8",
-      "credentials": {
-        "whatsAppTriggerApi": {
-          "id": "3p0SEkwzmKQBI7wT",
-          "name": "WhatsApp OAuth account"
-        }
-      }
+      "id": "5e96e785-b88f-4ff3-8971-d9d23763d262",
+      "name": "When clicking ‘Execute workflow’"
     },
     {
       "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1buJUD7X3YOVuiecdWMEyP_wVzf2SzNYUwoS9c-mwO18",
-          "mode": "id"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1060106660,
-          "mode": "list",
-          "cachedResultName": "Form Responses 1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1buJUD7X3YOVuiecdWMEyP_wVzf2SzNYUwoS9c-mwO18/edit#gid=1060106660"
-        },
         "options": {}
       },
-      "id": "49b64596-9c0c-44bc-94b8-db4882e7f2a6",
-      "name": "Lookup in Google Sheet",
-      "type": "n8n-nodes-base.googleSheets",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
       "position": [
-        -304,
-        32
+        -112,
+        -16
       ],
-      "typeVersion": 4.7,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "Zxxg14CK53MnxeO2",
-          "name": "Google Sheets account"
-        }
-      }
+      "id": "193032ed-8cfe-494f-b0f4-d2076da1bf6c",
+      "name": "Loop Over Items"
     },
     {
       "parameters": {
-        "conditions": {
-          "boolean": [
+        "assignments": {
+          "assignments": [
             {
-              "value1": "={{Object.keys($json).length > 0}}",
-              "operation": "isTrue"
+              "id": "44ee5814-9870-49e9-8a30-b9983bed141a",
+              "name": "news_id",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "f3459c6c-9562-433c-9b7b-3b002557550c",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "f74ece66-ef31-43e2-8822-632403181540",
+              "name": "summary",
+              "value": "={{ $json.contentSnippet }}",
+              "type": "string"
+            },
+            {
+              "id": "68f4868a-8ef0-428a-b89b-d5c987b27e51",
+              "name": "link",
+              "value": "={{ $json.link }}",
+              "type": "string"
             }
           ]
         },
         "options": {}
       },
-      "id": "63cfbb34-3319-4eb0-9ee3-7335957a84e1",
-      "name": "Check If Found",
-      "type": "n8n-nodes-base.if",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
       "position": [
-        0,
+        144,
+        0
+      ],
+      "id": "dc3cb24b-13e3-44bd-acdd-369fc24d772e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "rWKas71hsOPEFuse",
+          "mode": "list",
+          "cachedResultName": "smagent",
+          "cachedResultUrl": "/projects/f2EbmniIBR8oZwzD/datatables/rWKas71hsOPEFuse"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "news_id",
+              "displayName": "news_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        944,
         32
       ],
-      "typeVersion": 2.2
+      "id": "e8ba55d3-06db-4dac-99bc-d8de4bd73745",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "rWKas71hsOPEFuse",
+          "mode": "list",
+          "cachedResultName": "smagent",
+          "cachedResultUrl": "/projects/f2EbmniIBR8oZwzD/datatables/rWKas71hsOPEFuse"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "link"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -16
+      ],
+      "id": "5de94afb-a9a8-4019-9f3c-f633b182701f",
+      "name": "If row does not exist"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://graph.facebook.com/v20.0/1220963186551383/messages",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer $OPENROUTER_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"google/gemma-3n-e4b-it:free\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are a social media strategist.\\n\\nNews:\\n{{ $json.title }}\\n{{ $json.summary }}\\n\\nWrite:\\n1. LinkedIn post\\n2. Twitter/X post\\n3. Facebook post\\n\\nRules:\\n- Clear\\n- Non-repetitive\\n- 3–5 hashtags\"\n    }\n  ],\n  \"temperature\": 0.7,\n  \"max_tokens\": 500\n} ",
         "options": {}
       },
-      "id": "87434a60-9309-40de-be6b-105ecaa5c8e0",
-      "name": "Reply Unauthorized",
       "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
       "position": [
-        304,
-        -144
+        544,
+        0
       ],
-      "typeVersion": 4.3
-    },
-    {
-      "parameters": {
-        "command": "ffmpeg -i /data/cert/apncertificate_2025.png -vf \"drawtext=text='{{ $json[\"Fullname\"] }}':fontfile=/data/fonts/GreatVibes.ttf:fontsize=120:fontcolor=#0c5e3b:x=(w-text_w)/2:y=h*0.48\" /data/cert/output_{{$json[\"Whatsapp Number\"]}}.png"
-      },
-      "id": "710a2db3-0f90-437b-911e-4fd400d6e1a1",
-      "name": "Generate Certificate",
-      "type": "n8n-nodes-base.executeCommand",
-      "position": [
-        304,
-        176
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v20.0/1220963186551383/media",
-        "options": {}
-      },
-      "id": "753e649e-021a-4892-87b5-929aa7c7c00e",
-      "name": "Upload Media",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        608,
-        176
-      ],
-      "typeVersion": 4.3
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v20.0/1220963186551383/messages",
-        "options": {}
-      },
-      "id": "04f4992b-22b1-4505-b0b4-45af083686b1",
-      "name": "Send Certificate",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        896,
-        176
-      ],
-      "typeVersion": 4.3
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v20.0/1220963186551383/messages",
-        "options": {}
-      },
-      "id": "4ee091b6-1c5a-4a0d-9417-b458d6cf098f",
-      "name": "Send Success Message",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        1200,
-        176
-      ],
-      "typeVersion": 4.3
-    },
-    {
-      "parameters": {
-        "operation": "send",
-        "phoneNumberId": "944226902101021",
-        "recipientPhoneNumber": "={{ $json.messages[0].from }}",
-        "textBody": "Hi there, Im Lami, the AI created to distribute APN2025 Conference Certificates. Would you like to get yours?",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.whatsApp",
-      "typeVersion": 1.1,
-      "position": [
-        -704,
-        -208
-      ],
-      "id": "5af0d881-c6af-4ae8-bc70-bf6bb916b8c9",
-      "name": "Send message1",
-      "webhookId": "61e36485-c7f8-41e7-9b4e-76378b91dd98",
+      "id": "62374ed4-2e06-416f-a1b7-8ceee6c7c52a",
+      "name": "HTTP Request",
       "credentials": {
-        "whatsAppApi": {
-          "id": "WS4hRz9Ll00LuUjK",
-          "name": "WhatsApp account"
+        "httpHeaderAuth": {
+          "id": "JFQ7Arg0WYsup3AP",
+          "name": "openRouter"
         }
       }
     },
     {
       "parameters": {
-        "operation": "send",
-        "phoneNumberId": "=1370122891279735",
-        "recipientPhoneNumber": "={{ $json.messages[0].from }}",
-        "textBody": "Hello Welcome to Apn",
+        "chatId": "321129994",
+        "text": "=📰 *{{ $('Edit Fields').item.json.title }}*  🔗 {{ $('Edit Fields').item.json.link }}  🔹 Content: {{ $json.choices[0].message.content }} 🔹",
         "additionalFields": {}
       },
-      "type": "n8n-nodes-base.whatsApp",
-      "typeVersion": 1.1,
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
       "position": [
-        -912,
-        -944
+        752,
+        16
       ],
-      "id": "64625d4e-b2df-497a-8899-f847b4e310ee",
-      "name": "Send message",
-      "webhookId": "dffcaaaf-7e76-48be-b4d0-40a607f3adda",
+      "id": "d947558e-33f4-41d2-9b36-0e9102630a1e",
+      "name": "Send a text message",
+      "webhookId": "6e5664c2-a9d9-4688-9ec0-e31298aabbe3",
       "credentials": {
-        "whatsAppApi": {
-          "id": "WS4hRz9Ll00LuUjK",
-          "name": "WhatsApp account"
+        "telegramApi": {
+          "id": "JWBWYkchIsouEBi5",
+          "name": "Telegram account"
         }
       }
     },
     {
       "parameters": {
-        "path": "whatsapp-apn-bot",
-        "responseMode": "lastNode",
-        "options": {}
+        "unit": "minutes"
       },
-      "id": "66824ba4-653c-4c31-afc6-f05e91075fbb",
-      "name": "WhatsApp Webhook",
-      "type": "n8n-nodes-base.webhook",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
       "position": [
-        -1120,
-        -688
+        1184,
+        32
       ],
-      "typeVersion": 2.1,
-      "webhookId": "a962dcfd-31ba-44a4-8f8d-76ec4e7eaf38"
+      "id": "e5a48cff-06e3-4a4c-ab94-b21b67bcfb8f",
+      "name": "Wait",
+      "webhookId": "0cbfa173-2c55-4ae9-ab8c-c43eda69be8c"
     }
   ],
   "connections": {
-    "Lookup in Google Sheet": {
+    "RSS Read": {
       "main": [
         [
           {
-            "node": "Check If Found",
+            "node": "Loop Over Items",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Check If Found": {
+    "When clicking ‘Execute workflow’": {
       "main": [
         [
           {
-            "node": "Reply Unauthorized",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Generate Certificate",
+            "node": "RSS Read",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Generate Certificate": {
+    "Loop Over Items": {
       "main": [
+        [],
         [
           {
-            "node": "Upload Media",
+            "node": "Edit Fields",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Upload Media": {
+    "Edit Fields": {
       "main": [
         [
           {
-            "node": "Send Certificate",
+            "node": "If row does not exist",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Send Certificate": {
+    "Insert row": {
       "main": [
         [
           {
-            "node": "Send Success Message",
+            "node": "Wait",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "WhatsApp Trigger": {
+    "If row does not exist": {
       "main": [
         [
           {
-            "node": "Send message1",
+            "node": "HTTP Request",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Send message1": {
+    "HTTP Request": {
       "main": [
         [
           {
-            "node": "Lookup in Google Sheet",
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
             "type": "main",
             "index": 0
           }
@@ -313,15 +363,15 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "ca8f2dd1-a75b-419e-a968-18e7ac004c78",
+  "versionId": "cff09e40-e41f-499f-a722-ae5210b86796",
   "activeVersionId": null,
-  "triggerCount": 1,
+  "triggerCount": 0,
   "shared": [
     {
-      "updatedAt": "2025-12-13T12:24:10.271Z",
-      "createdAt": "2025-12-13T12:24:10.271Z",
+      "updatedAt": "2026-01-25T22:56:51.566Z",
+      "createdAt": "2026-01-25T22:56:51.566Z",
       "role": "workflow:owner",
-      "workflowId": "xZPLZsUwVDggemcZ",
+      "workflowId": "MlOpufuV0gElZAM6",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
