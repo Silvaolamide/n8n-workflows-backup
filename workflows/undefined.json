@@ -1,303 +1,54 @@
 {
-  "updatedAt": "2025-12-13T17:27:20.000Z",
-  "createdAt": "2025-12-13T12:24:10.237Z",
-  "id": "xZPLZsUwVDggemcZ",
-  "name": "APN Certificate Bot",
+  "updatedAt": "2026-05-08T17:49:28.965Z",
+  "createdAt": "2026-05-08T17:49:28.965Z",
+  "id": "EgrMnJcjnPotkYTs",
+  "name": "TheAwakeningWithLami-TitleSwitch",
   "active": false,
   "isArchived": false,
   "nodes": [
     {
-      "parameters": {
-        "updates": [
-          "messages"
-        ],
-        "options": {}
-      },
-      "type": "n8n-nodes-base.whatsAppTrigger",
+      "parameters": {},
+      "id": "1f82e291-8b98-42ad-a37a-1f50270e64ac",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
       "position": [
-        -1184,
-        -96
-      ],
-      "id": "b2a9bb9e-de34-4555-b251-b3d7c12d3f58",
-      "name": "WhatsApp Trigger",
-      "webhookId": "ea79b380-4d12-4dcc-b8b5-3bca82d732e8",
-      "credentials": {
-        "whatsAppTriggerApi": {
-          "id": "3p0SEkwzmKQBI7wT",
-          "name": "WhatsApp OAuth account"
-        }
-      }
+        -224,
+        -16
+      ]
     },
     {
       "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1buJUD7X3YOVuiecdWMEyP_wVzf2SzNYUwoS9c-mwO18",
-          "mode": "id"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1060106660,
-          "mode": "list",
-          "cachedResultName": "Form Responses 1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1buJUD7X3YOVuiecdWMEyP_wVzf2SzNYUwoS9c-mwO18/edit#gid=1060106660"
-        },
-        "options": {}
+        "resource": "video",
+        "operation": "update",
+        "videoId": "={{ $json.videoId }}",
+        "title": "={{ $json.newTitle }}",
+        "regionCode": "US",
+        "categoryId": "22",
+        "updateFields": {}
       },
-      "id": "49b64596-9c0c-44bc-94b8-db4882e7f2a6",
-      "name": "Lookup in Google Sheet",
-      "type": "n8n-nodes-base.googleSheets",
-      "position": [
-        -304,
-        32
-      ],
-      "typeVersion": 4.7,
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "Zxxg14CK53MnxeO2",
-          "name": "Google Sheets account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "boolean": [
-            {
-              "value1": "={{Object.keys($json).length > 0}}",
-              "operation": "isTrue"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "63cfbb34-3319-4eb0-9ee3-7335957a84e1",
-      "name": "Check If Found",
-      "type": "n8n-nodes-base.if",
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
       "position": [
         0,
-        32
+        -16
       ],
-      "typeVersion": 2.2
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v20.0/1220963186551383/messages",
-        "options": {}
-      },
-      "id": "87434a60-9309-40de-be6b-105ecaa5c8e0",
-      "name": "Reply Unauthorized",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        304,
-        -144
-      ],
-      "typeVersion": 4.3
-    },
-    {
-      "parameters": {
-        "command": "ffmpeg -i /data/cert/apncertificate_2025.png -vf \"drawtext=text='{{ $json[\"Fullname\"] }}':fontfile=/data/fonts/GreatVibes.ttf:fontsize=120:fontcolor=#0c5e3b:x=(w-text_w)/2:y=h*0.48\" /data/cert/output_{{$json[\"Whatsapp Number\"]}}.png"
-      },
-      "id": "710a2db3-0f90-437b-911e-4fd400d6e1a1",
-      "name": "Generate Certificate",
-      "type": "n8n-nodes-base.executeCommand",
-      "position": [
-        304,
-        176
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v20.0/1220963186551383/media",
-        "options": {}
-      },
-      "id": "753e649e-021a-4892-87b5-929aa7c7c00e",
-      "name": "Upload Media",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        608,
-        176
-      ],
-      "typeVersion": 4.3
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v20.0/1220963186551383/messages",
-        "options": {}
-      },
-      "id": "04f4992b-22b1-4505-b0b4-45af083686b1",
-      "name": "Send Certificate",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        896,
-        176
-      ],
-      "typeVersion": 4.3
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://graph.facebook.com/v20.0/1220963186551383/messages",
-        "options": {}
-      },
-      "id": "4ee091b6-1c5a-4a0d-9417-b458d6cf098f",
-      "name": "Send Success Message",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        1200,
-        176
-      ],
-      "typeVersion": 4.3
-    },
-    {
-      "parameters": {
-        "operation": "send",
-        "phoneNumberId": "944226902101021",
-        "recipientPhoneNumber": "={{ $json.messages[0].from }}",
-        "textBody": "Hi there, Im Lami, the AI created to distribute APN2025 Conference Certificates. Would you like to get yours?",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.whatsApp",
-      "typeVersion": 1.1,
-      "position": [
-        -704,
-        -208
-      ],
-      "id": "5af0d881-c6af-4ae8-bc70-bf6bb916b8c9",
-      "name": "Send message1",
-      "webhookId": "61e36485-c7f8-41e7-9b4e-76378b91dd98",
+      "id": "fa27dd4d-1bd1-4fa3-860b-bf9f4f45bbf2",
+      "name": "Update a video",
       "credentials": {
-        "whatsAppApi": {
-          "id": "WS4hRz9Ll00LuUjK",
-          "name": "WhatsApp account"
+        "youTubeOAuth2Api": {
+          "id": "HPVY6Iwtp4koiJ2j",
+          "name": "YouTube account"
         }
       }
-    },
-    {
-      "parameters": {
-        "operation": "send",
-        "phoneNumberId": "=1370122891279735",
-        "recipientPhoneNumber": "={{ $json.messages[0].from }}",
-        "textBody": "Hello Welcome to Apn",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.whatsApp",
-      "typeVersion": 1.1,
-      "position": [
-        -912,
-        -944
-      ],
-      "id": "64625d4e-b2df-497a-8899-f847b4e310ee",
-      "name": "Send message",
-      "webhookId": "dffcaaaf-7e76-48be-b4d0-40a607f3adda",
-      "credentials": {
-        "whatsAppApi": {
-          "id": "WS4hRz9Ll00LuUjK",
-          "name": "WhatsApp account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "path": "whatsapp-apn-bot",
-        "responseMode": "lastNode",
-        "options": {}
-      },
-      "id": "66824ba4-653c-4c31-afc6-f05e91075fbb",
-      "name": "WhatsApp Webhook",
-      "type": "n8n-nodes-base.webhook",
-      "position": [
-        -1120,
-        -688
-      ],
-      "typeVersion": 2.1,
-      "webhookId": "a962dcfd-31ba-44a4-8f8d-76ec4e7eaf38"
     }
   ],
   "connections": {
-    "Lookup in Google Sheet": {
+    "Execute Workflow Trigger": {
       "main": [
         [
           {
-            "node": "Check If Found",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Check If Found": {
-      "main": [
-        [
-          {
-            "node": "Reply Unauthorized",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Generate Certificate",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Generate Certificate": {
-      "main": [
-        [
-          {
-            "node": "Upload Media",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Upload Media": {
-      "main": [
-        [
-          {
-            "node": "Send Certificate",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send Certificate": {
-      "main": [
-        [
-          {
-            "node": "Send Success Message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "WhatsApp Trigger": {
-      "main": [
-        [
-          {
-            "node": "Send message1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send message1": {
-      "main": [
-        [
-          {
-            "node": "Lookup in Google Sheet",
+            "node": "Update a video",
             "type": "main",
             "index": 0
           }
@@ -313,18 +64,25 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "ca8f2dd1-a75b-419e-a968-18e7ac004c78",
+  "versionId": "65d48767-12b2-4b86-98f6-a965ebea7e97",
   "activeVersionId": null,
-  "triggerCount": 1,
+  "triggerCount": 0,
   "shared": [
     {
-      "updatedAt": "2025-12-13T12:24:10.271Z",
-      "createdAt": "2025-12-13T12:24:10.271Z",
+      "updatedAt": "2026-05-08T17:49:29.218Z",
+      "createdAt": "2026-05-08T17:49:29.218Z",
       "role": "workflow:owner",
-      "workflowId": "xZPLZsUwVDggemcZ",
+      "workflowId": "EgrMnJcjnPotkYTs",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
   "activeVersion": null,
-  "tags": []
+  "tags": [
+    {
+      "updatedAt": "2026-05-08T17:49:24.248Z",
+      "createdAt": "2026-05-08T17:49:24.248Z",
+      "id": "j7Xi9lB2vRIaB0q1",
+      "name": "Youtube Title Switch"
+    }
+  ]
 }
