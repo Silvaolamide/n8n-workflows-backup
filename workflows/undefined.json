@@ -1,43 +1,104 @@
 {
-  "updatedAt": "2026-05-12T12:07:31.000Z",
-  "createdAt": "2026-05-12T11:00:23.100Z",
-  "id": "M5InWtj6Dkk3VU2p",
-  "name": "LeapAI",
+  "updatedAt": "2026-05-31T15:12:22.000Z",
+  "createdAt": "2026-05-31T15:11:35.110Z",
+  "id": "BS09OMnZEluo3LUz",
+  "name": "LamiAI SEO - 1 (Schedule & Orchestrator)",
   "active": false,
   "isArchived": false,
   "nodes": [
     {
-      "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "id": "03da7682-33f4-4845-9065-feee69625343",
+      "name": "Schedule Trigger (Daily)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
       "position": [
-        -240,
-        -32
-      ],
-      "id": "0cdfdf1d-bcb7-4c79-b2ab-d1b6b6437a42",
-      "name": "When clicking ‘Execute workflow’"
+        0,
+        0
+      ]
     },
     {
       "parameters": {
-        "url": "https://www.opportunitiesforafricans.com/feed/",
+        "jsCode": "const keywords = [\n  \"learning AI in Benin City\",\n  \"Learning AI in Nigeria\",\n  \"AI Tutorials in Benin\",\n  \"AI Tutorials in Nigeria\",\n  \"Making Money from AI\",\n  \"AI for Content Creators\",\n  \"AI for Doctors\",\n  \"How to make money through AI\"\n];\n\nconst offset = new Date().getDate();\nconst selectedKeyword = keywords[offset % keywords.length];\n\nreturn {\n  json: {\n    keyword: selectedKeyword,\n    tone: \"informative\",\n    postLength: \"medium\",\n    includeLocalRefs: true,\n    triggerTime: new Date().toISOString()\n  }\n};"
+      },
+      "id": "b9a337c1-a883-427b-b3ef-8ca561e1222c",
+      "name": "Select Today's Keyword",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-n8n-webhook-url.hooks.n8n.cloud/webhook/generate-seo-post",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-SECRET",
+              "value": "your-secret-auth-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "keyword",
+              "value": "={{ $json.keyword }}"
+            },
+            {
+              "name": "tone",
+              "value": "={{ $json.tone }}"
+            },
+            {
+              "name": "postLength",
+              "value": "={{ $json.postLength }}"
+            },
+            {
+              "name": "includeLocalRefs",
+              "value": "={{ $json.includeLocalRefs }}"
+            }
+          ]
+        },
         "options": {}
       },
-      "type": "n8n-nodes-base.rssFeedRead",
-      "typeVersion": 1.2,
+      "id": "c33001d0-2406-4f6a-b05f-890cb2453352",
+      "name": "Trigger Post Creator Content Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
       "position": [
-        -64,
-        -32
-      ],
-      "id": "93a70293-ce88-4ec6-b8ae-6e79e841314a",
-      "name": "RSS Read"
+        448,
+        0
+      ]
     }
   ],
   "connections": {
-    "When clicking ‘Execute workflow’": {
+    "Schedule Trigger (Daily)": {
       "main": [
         [
           {
-            "node": "RSS Read",
+            "node": "Select Today's Keyword",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Today's Keyword": {
+      "main": [
+        [
+          {
+            "node": "Trigger Post Creator Content Workflow",
             "type": "main",
             "index": 0
           }
@@ -51,18 +112,25 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "e15d7658-ef17-4698-b1bf-24cda9fd3a35",
+  "versionId": "3b76b650-f1ab-48eb-be09-4a5256e20471",
   "activeVersionId": null,
   "triggerCount": 0,
   "shared": [
     {
-      "updatedAt": "2026-05-12T11:00:23.125Z",
-      "createdAt": "2026-05-12T11:00:23.125Z",
+      "updatedAt": "2026-05-31T15:11:35.138Z",
+      "createdAt": "2026-05-31T15:11:35.138Z",
       "role": "workflow:owner",
-      "workflowId": "M5InWtj6Dkk3VU2p",
+      "workflowId": "BS09OMnZEluo3LUz",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
   "activeVersion": null,
-  "tags": []
+  "tags": [
+    {
+      "updatedAt": "2026-05-31T15:11:53.910Z",
+      "createdAt": "2026-05-31T15:11:53.910Z",
+      "id": "eoQprtBqrdPU1DK6",
+      "name": "LamiAI SEO"
+    }
+  ]
 }
