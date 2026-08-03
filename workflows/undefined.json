@@ -1,304 +1,104 @@
 {
-  "updatedAt": "2025-12-19T12:13:34.000Z",
-  "createdAt": "2025-12-13T18:08:05.738Z",
-  "id": "azdJUuk1ZCrMHap0",
-  "name": "APN 2025 Conference Certificate",
+  "updatedAt": "2026-05-31T15:12:22.000Z",
+  "createdAt": "2026-05-31T15:11:35.110Z",
+  "id": "BS09OMnZEluo3LUz",
+  "name": "LamiAI SEO - 1 (Schedule & Orchestrator)",
   "active": false,
   "isArchived": false,
   "nodes": [
     {
-      "parameters": {},
-      "id": "47afaabf-564f-4200-b0c1-b1cd22cc522d",
-      "name": "Manual Trigger",
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "id": "03da7682-33f4-4845-9065-feee69625343",
+      "name": "Schedule Trigger (Daily)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
       "position": [
-        -1040,
-        176
+        0,
+        0
       ]
     },
     {
       "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1buJUD7X3YOVuiecdWMEyP_wVzf2SzNYUwoS9c-mwO18",
-          "mode": "id"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1060106660,
-          "mode": "id"
-        },
-        "options": {}
+        "jsCode": "const keywords = [\n  \"learning AI in Benin City\",\n  \"Learning AI in Nigeria\",\n  \"AI Tutorials in Benin\",\n  \"AI Tutorials in Nigeria\",\n  \"Making Money from AI\",\n  \"AI for Content Creators\",\n  \"AI for Doctors\",\n  \"How to make money through AI\"\n];\n\nconst offset = new Date().getDate();\nconst selectedKeyword = keywords[offset % keywords.length];\n\nreturn {\n  json: {\n    keyword: selectedKeyword,\n    tone: \"informative\",\n    postLength: \"medium\",\n    includeLocalRefs: true,\n    triggerTime: new Date().toISOString()\n  }\n};"
       },
-      "id": "cbdb95f1-fb93-4235-8c7f-6729e509a08b",
-      "name": "Read Google Sheet",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.5,
-      "position": [
-        -816,
-        176
-      ],
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "Zxxg14CK53MnxeO2",
-          "name": "Google Sheets account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Prepare data for FFmpeg\nconst items = $input.all();\n\nreturn items.map(item => {\n  const row = item.json;\n  \n  const fullName = row['Fullname'] || row['Name'] || row['Full Name'] || 'Recipient';\n  const email = row['Email'] || row['email'] || row['Email Address'];\n  \n  // Use random ID to ensure no file collisions in batch\n  const randomId = Math.random().toString(36).substring(7);\n  const fileSafeName = fullName.replace(/[^a-z0-9]/gi, '_').toLowerCase();\n  const outputPath = `/tmp/cert_${fileSafeName}_${randomId}.png`;\n  \n  const escapedName = fullName.replace(/'/g, \"'\\\\''\");\n  \n  const ffmpegCommand = `ffmpeg -y -i '/home/node/.n8n/cert/apncertificate_2025c.png' -vf \"drawtext=text='${escapedName}':fontfile='/home/node/.n8n/fonts/GreatVibes.ttf':fontsize=150:fontcolor=#0c5e3b:x=(w-text_w)/2:y=h*0.48\" '${outputPath}'`;\n  \n  return {\n    json: {\n      fullName,\n      email,\n      outputPath,\n      ffmpegCommand\n    }\n  };\n});"
-      },
-      "id": "ac9d35a0-1201-4f37-abc6-2c5126ef5e50",
-      "name": "Prepare FFmpeg Command",
+      "id": "b9a337c1-a883-427b-b3ef-8ca561e1222c",
+      "name": "Select Today's Keyword",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -592,
-        176
+        224,
+        0
       ]
     },
     {
       "parameters": {
-        "command": "={{ $json.ffmpegCommand }}"
-      },
-      "id": "b3fa2fef-d2d3-4b1c-a217-42929a6a2631",
-      "name": "Run FFmpeg",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [
-        -160,
-        176
-      ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
+        "method": "POST",
+        "url": "https://your-n8n-webhook-url.hooks.n8n.cloud/webhook/generate-seo-post",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "id": "78c93b16-5e5d-4a11-a67b-1a938c5b05a5",
-              "name": "fullName",
-              "value": "={{ $('Prepare FFmpeg Command').item.json.fullName }}",
-              "type": "string"
+              "name": "X-N8N-SECRET",
+              "value": "your-secret-auth-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "keyword",
+              "value": "={{ $json.keyword }}"
             },
             {
-              "id": "d8e3b5e4-1875-4c6e-8d8a-6b4d375a8988",
-              "name": "email",
-              "value": "={{ $('Prepare FFmpeg Command').item.json.email }}",
-              "type": "string"
+              "name": "tone",
+              "value": "={{ $json.tone }}"
             },
             {
-              "id": "c9e5e6e7-1234-4a11-b123-1a938c5b05a5",
-              "name": "outputPath",
-              "value": "={{ $('Prepare FFmpeg Command').item.json.outputPath }}",
-              "type": "string"
+              "name": "postLength",
+              "value": "={{ $json.postLength }}"
+            },
+            {
+              "name": "includeLocalRefs",
+              "value": "={{ $json.includeLocalRefs }}"
             }
           ]
         },
         "options": {}
       },
-      "id": "4de9336d-60f2-4cb7-8fa7-06c8d7db1d33",
-      "name": "Restore Record Data",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "id": "c33001d0-2406-4f6a-b05f-890cb2453352",
+      "name": "Trigger Post Creator Content Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
       "position": [
-        32,
-        176
+        448,
+        0
       ]
-    },
-    {
-      "parameters": {
-        "filePath": "={{ $json.outputPath }}",
-        "dataPropertyName": "certificate"
-      },
-      "id": "deea2073-12f4-4487-a12f-547e7eda2745",
-      "name": "Read Certificate File",
-      "type": "n8n-nodes-base.readBinaryFile",
-      "typeVersion": 1,
-      "position": [
-        240,
-        176
-      ]
-    },
-    {
-      "parameters": {
-        "sendTo": "={{ $json.email }}",
-        "subject": "Your APN Conference 2025 Certificate",
-        "message": "=Hello {{ $json.fullName }},<br><br>\nThank you for attending the APN Conference, 2025.<br>\nPlease find your certificate attached herewith.<br><br>\nWarm Regards,<br>\nLOC, APN Conference 2025",
-        "options": {
-          "attachmentsUi": {
-            "attachmentsBinary": [
-              {
-                "property": "certificate"
-              }
-            ]
-          }
-        }
-      },
-      "id": "9e90c7d1-8b27-4eb0-9a86-63486ddb369b",
-      "name": "Send Email",
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.1,
-      "position": [
-        480,
-        176
-      ],
-      "webhookId": "6ae3f622-2243-4f13-9ea3-0f800b2bb7ae",
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "tOmayGx6ZdnY7Ymv",
-          "name": "Gmail account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "command": "=rm -f {{ $json.outputPath }}"
-      },
-      "id": "e0e42e7d-4e08-402f-84b6-8b7a52cb62bb",
-      "name": "Cleanup",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [
-        704,
-        176
-      ]
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        -384,
-        176
-      ],
-      "id": "f8cb8c26-8368-4d17-9f91-1d3032cc8dc5",
-      "name": "Loop Over Items"
-    },
-    {
-      "parameters": {
-        "amount": 30
-      },
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        -256,
-        16
-      ],
-      "id": "b67c52ce-d8c6-4471-a0e2-8ee778d47a15",
-      "name": "Wait",
-      "webhookId": "a2d33e20-392e-4247-995e-9d51bbd7c112"
     }
   ],
   "connections": {
-    "Manual Trigger": {
+    "Schedule Trigger (Daily)": {
       "main": [
         [
           {
-            "node": "Read Google Sheet",
+            "node": "Select Today's Keyword",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Read Google Sheet": {
+    "Select Today's Keyword": {
       "main": [
         [
           {
-            "node": "Prepare FFmpeg Command",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Prepare FFmpeg Command": {
-      "main": [
-        [
-          {
-            "node": "Loop Over Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Run FFmpeg": {
-      "main": [
-        [
-          {
-            "node": "Restore Record Data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Restore Record Data": {
-      "main": [
-        [
-          {
-            "node": "Read Certificate File",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Read Certificate File": {
-      "main": [
-        [
-          {
-            "node": "Send Email",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send Email": {
-      "main": [
-        [
-          {
-            "node": "Cleanup",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Loop Over Items": {
-      "main": [
-        [],
-        [
-          {
-            "node": "Wait",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Cleanup": {
-      "main": [
-        [
-          {
-            "node": "Loop Over Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wait": {
-      "main": [
-        [
-          {
-            "node": "Run FFmpeg",
+            "node": "Trigger Post Creator Content Workflow",
             "type": "main",
             "index": 0
           }
@@ -310,22 +110,27 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": true
-  },
+  "meta": null,
   "pinData": {},
-  "versionId": "2a097fb0-8e8c-4f4c-b99b-934004d77b78",
+  "versionId": "3b76b650-f1ab-48eb-be09-4a5256e20471",
   "activeVersionId": null,
   "triggerCount": 0,
   "shared": [
     {
-      "updatedAt": "2025-12-13T18:08:05.791Z",
-      "createdAt": "2025-12-13T18:08:05.791Z",
+      "updatedAt": "2026-05-31T15:11:35.138Z",
+      "createdAt": "2026-05-31T15:11:35.138Z",
       "role": "workflow:owner",
-      "workflowId": "azdJUuk1ZCrMHap0",
+      "workflowId": "BS09OMnZEluo3LUz",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
   "activeVersion": null,
-  "tags": []
+  "tags": [
+    {
+      "updatedAt": "2026-05-31T15:11:53.910Z",
+      "createdAt": "2026-05-31T15:11:53.910Z",
+      "id": "eoQprtBqrdPU1DK6",
+      "name": "LamiAI SEO"
+    }
+  ]
 }
