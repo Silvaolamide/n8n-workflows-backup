@@ -1,297 +1,104 @@
 {
-  "updatedAt": "2026-05-08T17:51:20.000Z",
-  "createdAt": "2025-12-18T18:44:39.187Z",
-  "id": "sDLr8VoUAhb8J47Z",
-  "name": "Manager-YoutubeTitleSwitch",
-  "active": true,
+  "updatedAt": "2026-05-31T15:12:22.000Z",
+  "createdAt": "2026-05-31T15:11:35.110Z",
+  "id": "BS09OMnZEluo3LUz",
+  "name": "LamiAI SEO - 1 (Schedule & Orchestrator)",
+  "active": false,
   "isArchived": false,
   "nodes": [
     {
       "parameters": {
         "rule": {
           "interval": [
-            {
-              "field": "minutes",
-              "minutesInterval": 15
-            }
+            {}
           ]
         }
       },
+      "id": "03da7682-33f4-4845-9065-feee69625343",
+      "name": "Schedule Trigger (Daily)",
       "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.3,
+      "typeVersion": 1.1,
       "position": [
-        -352,
-        16
-      ],
-      "id": "984aa69d-111a-4290-9940-de663d36823b",
-      "name": "Schedule Trigger"
+        0,
+        0
+      ]
     },
     {
       "parameters": {
-        "operation": "search",
-        "base": {
-          "__rl": true,
-          "value": "appzeLd3Re7qGX3mw",
-          "mode": "list",
-          "cachedResultName": "YoutubeTitleSwitch",
-          "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw"
-        },
-        "table": {
-          "__rl": true,
-          "value": "tbli18a96wUhpZy0J",
-          "mode": "list",
-          "cachedResultName": "Table 1",
-          "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw/tbli18a96wUhpZy0J"
-        },
-        "filterByFormula": "AND({Status}='Active', OR({Next Run Time}=BLANK(), IS_BEFORE({Next Run Time}, NOW())))",
-        "options": {}
+        "jsCode": "const keywords = [\n  \"learning AI in Benin City\",\n  \"Learning AI in Nigeria\",\n  \"AI Tutorials in Benin\",\n  \"AI Tutorials in Nigeria\",\n  \"Making Money from AI\",\n  \"AI for Content Creators\",\n  \"AI for Doctors\",\n  \"How to make money through AI\"\n];\n\nconst offset = new Date().getDate();\nconst selectedKeyword = keywords[offset % keywords.length];\n\nreturn {\n  json: {\n    keyword: selectedKeyword,\n    tone: \"informative\",\n    postLength: \"medium\",\n    includeLocalRefs: true,\n    triggerTime: new Date().toISOString()\n  }\n};"
       },
-      "type": "n8n-nodes-base.airtable",
-      "typeVersion": 2.1,
-      "position": [
-        -144,
-        16
-      ],
-      "id": "9b2c9863-44c5-438d-8b82-cec87d64416a",
-      "name": "Search records",
-      "retryOnFail": true,
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "XbimsFUgNwhgkhc5",
-          "name": "Airtable Personal Access Token account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const results = [];\n\n// Loop through every video found in Airtable\nfor (const item of $input.all()) {\n  const row = item.json;\n\n  // 1. Safety Check: If no titles, skip\n  if (!row.Titles) continue;\n\n  // 2. Split the titles by the pipe symbol |\n  const titleList = row.Titles.split('|').map(t => t.trim());\n\n  // 3. Calculate the Next Index\n  let nextIndex = (row['Current Index'] || 0) + 1;\n\n  // If we reached the end of the list, go back to the start (0)\n  if (nextIndex >= titleList.length) {\n    nextIndex = 0;\n  }\n\n  // 4. Pick the new title\n  const newTitle = titleList[nextIndex];\n\n  // 5. Calculate Next Run Time (Current Time + Interval Minutes)\n  const interval = row['Interval Minutes'] || 60;\n  // Get current time, add minutes * 60000 (to convert to ms)\n  const nextRun = new Date(new Date().getTime() + interval * 60000);\n\n  // 6. Output the data for the next nodes\n  results.push({\n    json: {\n      airtableId: row.id,           // The ID of the row (to update later)\n      workerId: row['Worker ID'],   // Who should do the work?\n      videoId: row['Video ID'],     // Which video?\n      newTitle: newTitle,           // The new title to set\n      nextIndex: nextIndex,         // The new index number to save\n      nextRunTime: nextRun.toISOString() // The new time to save\n    }\n  });\n}\n\nreturn results;"
-      },
+      "id": "b9a337c1-a883-427b-b3ef-8ca561e1222c",
+      "name": "Select Today's Keyword",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        64,
-        16
-      ],
-      "id": "f9c1a7a7-7260-45c5-8e8c-4655050e8d36",
-      "name": "Code in JavaScript"
+        224,
+        0
+      ]
     },
     {
       "parameters": {
-        "operation": "update",
-        "base": {
-          "__rl": true,
-          "value": "appzeLd3Re7qGX3mw",
-          "mode": "list",
-          "cachedResultName": "YoutubeTitleSwitch",
-          "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw"
-        },
-        "table": {
-          "__rl": true,
-          "value": "tbli18a96wUhpZy0J",
-          "mode": "list",
-          "cachedResultName": "Table 1",
-          "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw/tbli18a96wUhpZy0J"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "Current Index": "={{ $('Code in JavaScript').item.json.nextIndex }}",
-            "Video ID": "={{ $('Code in JavaScript').item.json.videoId }}",
-            "Next Run Time": "={{ $('Code in JavaScript').item.json.nextRunTime }}"
-          },
-          "matchingColumns": [
-            "Video ID"
-          ],
-          "schema": [
+        "method": "POST",
+        "url": "https://your-n8n-webhook-url.hooks.n8n.cloud/webhook/generate-seo-post",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "id": "id",
-              "displayName": "id",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": true,
-              "removed": true
-            },
-            {
-              "id": "Video ID",
-              "displayName": "Video ID",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Titles",
-              "displayName": "Titles",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Current Index",
-              "displayName": "Current Index",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Worker ID",
-              "displayName": "Worker ID",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Status",
-              "displayName": "Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "Active",
-                  "value": "Active"
-                },
-                {
-                  "name": "Paused",
-                  "value": "Paused"
-                },
-                {
-                  "name": "Completed",
-                  "value": "Completed"
-                }
-              ],
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Interval Minutes",
-              "displayName": "Interval Minutes",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Next Run Time",
-              "displayName": "Next Run Time",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "dateTime",
-              "readOnly": false,
-              "removed": false
+              "name": "X-N8N-SECRET",
+              "value": "your-secret-auth-key"
             }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "keyword",
+              "value": "={{ $json.keyword }}"
+            },
+            {
+              "name": "tone",
+              "value": "={{ $json.tone }}"
+            },
+            {
+              "name": "postLength",
+              "value": "={{ $json.postLength }}"
+            },
+            {
+              "name": "includeLocalRefs",
+              "value": "={{ $json.includeLocalRefs }}"
+            }
+          ]
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.airtable",
-      "typeVersion": 2.1,
+      "id": "c33001d0-2406-4f6a-b05f-890cb2453352",
+      "name": "Trigger Post Creator Content Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
       "position": [
-        480,
-        16
-      ],
-      "id": "91e5418d-23a1-4e5e-8864-2b6d1214b63c",
-      "name": "Update record",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "XbimsFUgNwhgkhc5",
-          "name": "Airtable Personal Access Token account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "={{ $json.workerId }}",
-          "mode": "id"
-        },
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {},
-          "matchingColumns": [],
-          "schema": [],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "mode": "each",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.3,
-      "position": [
-        272,
-        16
-      ],
-      "id": "c66f7c42-3f58-4f5f-ac0a-d6175d9410a4",
-      "name": "Call 'AIWithLami-TitleSwitch'"
+        448,
+        0
+      ]
     }
   ],
   "connections": {
-    "Schedule Trigger": {
+    "Schedule Trigger (Daily)": {
       "main": [
         [
           {
-            "node": "Search records",
+            "node": "Select Today's Keyword",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Search records": {
+    "Select Today's Keyword": {
       "main": [
         [
           {
-            "node": "Code in JavaScript",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code in JavaScript": {
-      "main": [
-        [
-          {
-            "node": "Call 'AIWithLami-TitleSwitch'",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Call 'AIWithLami-TitleSwitch'": {
-      "main": [
-        [
-          {
-            "node": "Update record",
+            "node": "Trigger Post Creator Content Workflow",
             "type": "main",
             "index": 0
           }
@@ -302,354 +109,28 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "staticData": {
-    "node:Schedule Trigger": {
-      "recurrenceRules": []
-    }
-  },
-  "meta": {
-    "templateCredsSetupCompleted": true
-  },
-  "pinData": {
-    "Schedule Trigger": [
-      {
-        "json": {
-          "timestamp": "2025-12-18T15:45:50.010-05:00",
-          "Readable date": "December 18th 2025, 3:45:50 pm",
-          "Readable time": "3:45:50 pm",
-          "Day of week": "Thursday",
-          "Year": "2025",
-          "Month": "December",
-          "Day of month": "18",
-          "Hour": "15",
-          "Minute": "45",
-          "Second": "50",
-          "Timezone": "America/New_York (UTC-05:00)"
-        }
-      }
-    ]
-  },
-  "versionId": "b10a14d0-d4d8-42b3-a76a-114fdd171409",
-  "activeVersionId": "b10a14d0-d4d8-42b3-a76a-114fdd171409",
-  "triggerCount": 1,
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "3b76b650-f1ab-48eb-be09-4a5256e20471",
+  "activeVersionId": null,
+  "triggerCount": 0,
   "shared": [
     {
-      "updatedAt": "2025-12-18T18:44:39.213Z",
-      "createdAt": "2025-12-18T18:44:39.213Z",
+      "updatedAt": "2026-05-31T15:11:35.138Z",
+      "createdAt": "2026-05-31T15:11:35.138Z",
       "role": "workflow:owner",
-      "workflowId": "sDLr8VoUAhb8J47Z",
+      "workflowId": "BS09OMnZEluo3LUz",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
-  "activeVersion": {
-    "updatedAt": "2026-05-08T17:51:20.042Z",
-    "createdAt": "2026-05-08T17:51:20.042Z",
-    "versionId": "b10a14d0-d4d8-42b3-a76a-114fdd171409",
-    "workflowId": "sDLr8VoUAhb8J47Z",
-    "nodes": [
-      {
-        "parameters": {
-          "rule": {
-            "interval": [
-              {
-                "field": "minutes",
-                "minutesInterval": 15
-              }
-            ]
-          }
-        },
-        "type": "n8n-nodes-base.scheduleTrigger",
-        "typeVersion": 1.3,
-        "position": [
-          -352,
-          16
-        ],
-        "id": "984aa69d-111a-4290-9940-de663d36823b",
-        "name": "Schedule Trigger"
-      },
-      {
-        "parameters": {
-          "operation": "search",
-          "base": {
-            "__rl": true,
-            "value": "appzeLd3Re7qGX3mw",
-            "mode": "list",
-            "cachedResultName": "YoutubeTitleSwitch",
-            "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw"
-          },
-          "table": {
-            "__rl": true,
-            "value": "tbli18a96wUhpZy0J",
-            "mode": "list",
-            "cachedResultName": "Table 1",
-            "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw/tbli18a96wUhpZy0J"
-          },
-          "filterByFormula": "AND({Status}='Active', OR({Next Run Time}=BLANK(), IS_BEFORE({Next Run Time}, NOW())))",
-          "options": {}
-        },
-        "type": "n8n-nodes-base.airtable",
-        "typeVersion": 2.1,
-        "position": [
-          -144,
-          16
-        ],
-        "id": "9b2c9863-44c5-438d-8b82-cec87d64416a",
-        "name": "Search records",
-        "retryOnFail": true,
-        "credentials": {
-          "airtableTokenApi": {
-            "id": "XbimsFUgNwhgkhc5",
-            "name": "Airtable Personal Access Token account"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "jsCode": "const results = [];\n\n// Loop through every video found in Airtable\nfor (const item of $input.all()) {\n  const row = item.json;\n\n  // 1. Safety Check: If no titles, skip\n  if (!row.Titles) continue;\n\n  // 2. Split the titles by the pipe symbol |\n  const titleList = row.Titles.split('|').map(t => t.trim());\n\n  // 3. Calculate the Next Index\n  let nextIndex = (row['Current Index'] || 0) + 1;\n\n  // If we reached the end of the list, go back to the start (0)\n  if (nextIndex >= titleList.length) {\n    nextIndex = 0;\n  }\n\n  // 4. Pick the new title\n  const newTitle = titleList[nextIndex];\n\n  // 5. Calculate Next Run Time (Current Time + Interval Minutes)\n  const interval = row['Interval Minutes'] || 60;\n  // Get current time, add minutes * 60000 (to convert to ms)\n  const nextRun = new Date(new Date().getTime() + interval * 60000);\n\n  // 6. Output the data for the next nodes\n  results.push({\n    json: {\n      airtableId: row.id,           // The ID of the row (to update later)\n      workerId: row['Worker ID'],   // Who should do the work?\n      videoId: row['Video ID'],     // Which video?\n      newTitle: newTitle,           // The new title to set\n      nextIndex: nextIndex,         // The new index number to save\n      nextRunTime: nextRun.toISOString() // The new time to save\n    }\n  });\n}\n\nreturn results;"
-        },
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
-        "position": [
-          64,
-          16
-        ],
-        "id": "f9c1a7a7-7260-45c5-8e8c-4655050e8d36",
-        "name": "Code in JavaScript"
-      },
-      {
-        "parameters": {
-          "operation": "update",
-          "base": {
-            "__rl": true,
-            "value": "appzeLd3Re7qGX3mw",
-            "mode": "list",
-            "cachedResultName": "YoutubeTitleSwitch",
-            "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw"
-          },
-          "table": {
-            "__rl": true,
-            "value": "tbli18a96wUhpZy0J",
-            "mode": "list",
-            "cachedResultName": "Table 1",
-            "cachedResultUrl": "https://airtable.com/appzeLd3Re7qGX3mw/tbli18a96wUhpZy0J"
-          },
-          "columns": {
-            "mappingMode": "defineBelow",
-            "value": {
-              "Current Index": "={{ $('Code in JavaScript').item.json.nextIndex }}",
-              "Video ID": "={{ $('Code in JavaScript').item.json.videoId }}",
-              "Next Run Time": "={{ $('Code in JavaScript').item.json.nextRunTime }}"
-            },
-            "matchingColumns": [
-              "Video ID"
-            ],
-            "schema": [
-              {
-                "id": "id",
-                "displayName": "id",
-                "required": false,
-                "defaultMatch": true,
-                "display": true,
-                "type": "string",
-                "readOnly": true,
-                "removed": true
-              },
-              {
-                "id": "Video ID",
-                "displayName": "Video ID",
-                "required": false,
-                "defaultMatch": false,
-                "canBeUsedToMatch": true,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": false
-              },
-              {
-                "id": "Titles",
-                "displayName": "Titles",
-                "required": false,
-                "defaultMatch": false,
-                "canBeUsedToMatch": true,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "Current Index",
-                "displayName": "Current Index",
-                "required": false,
-                "defaultMatch": false,
-                "canBeUsedToMatch": true,
-                "display": true,
-                "type": "number",
-                "readOnly": false,
-                "removed": false
-              },
-              {
-                "id": "Worker ID",
-                "displayName": "Worker ID",
-                "required": false,
-                "defaultMatch": false,
-                "canBeUsedToMatch": true,
-                "display": true,
-                "type": "string",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "Status",
-                "displayName": "Status",
-                "required": false,
-                "defaultMatch": false,
-                "canBeUsedToMatch": true,
-                "display": true,
-                "type": "options",
-                "options": [
-                  {
-                    "name": "Active",
-                    "value": "Active"
-                  },
-                  {
-                    "name": "Paused",
-                    "value": "Paused"
-                  },
-                  {
-                    "name": "Completed",
-                    "value": "Completed"
-                  }
-                ],
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "Interval Minutes",
-                "displayName": "Interval Minutes",
-                "required": false,
-                "defaultMatch": false,
-                "canBeUsedToMatch": true,
-                "display": true,
-                "type": "number",
-                "readOnly": false,
-                "removed": true
-              },
-              {
-                "id": "Next Run Time",
-                "displayName": "Next Run Time",
-                "required": false,
-                "defaultMatch": false,
-                "canBeUsedToMatch": true,
-                "display": true,
-                "type": "dateTime",
-                "readOnly": false,
-                "removed": false
-              }
-            ],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": false
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.airtable",
-        "typeVersion": 2.1,
-        "position": [
-          480,
-          16
-        ],
-        "id": "91e5418d-23a1-4e5e-8864-2b6d1214b63c",
-        "name": "Update record",
-        "credentials": {
-          "airtableTokenApi": {
-            "id": "XbimsFUgNwhgkhc5",
-            "name": "Airtable Personal Access Token account"
-          }
-        }
-      },
-      {
-        "parameters": {
-          "workflowId": {
-            "__rl": true,
-            "value": "={{ $json.workerId }}",
-            "mode": "id"
-          },
-          "workflowInputs": {
-            "mappingMode": "defineBelow",
-            "value": {},
-            "matchingColumns": [],
-            "schema": [],
-            "attemptToConvertTypes": false,
-            "convertFieldsToString": true
-          },
-          "mode": "each",
-          "options": {}
-        },
-        "type": "n8n-nodes-base.executeWorkflow",
-        "typeVersion": 1.3,
-        "position": [
-          272,
-          16
-        ],
-        "id": "c66f7c42-3f58-4f5f-ac0a-d6175d9410a4",
-        "name": "Call 'AIWithLami-TitleSwitch'"
-      }
-    ],
-    "connections": {
-      "Schedule Trigger": {
-        "main": [
-          [
-            {
-              "node": "Search records",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Search records": {
-        "main": [
-          [
-            {
-              "node": "Code in JavaScript",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Code in JavaScript": {
-        "main": [
-          [
-            {
-              "node": "Call 'AIWithLami-TitleSwitch'",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Call 'AIWithLami-TitleSwitch'": {
-        "main": [
-          [
-            {
-              "node": "Update record",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      }
-    },
-    "authors": "Olamide Agunkejoye",
-    "name": null,
-    "description": null
-  },
+  "activeVersion": null,
   "tags": [
     {
-      "updatedAt": "2026-05-08T17:49:24.248Z",
-      "createdAt": "2026-05-08T17:49:24.248Z",
-      "id": "j7Xi9lB2vRIaB0q1",
-      "name": "Youtube Title Switch"
+      "updatedAt": "2026-05-31T15:11:53.910Z",
+      "createdAt": "2026-05-31T15:11:53.910Z",
+      "id": "eoQprtBqrdPU1DK6",
+      "name": "LamiAI SEO"
     }
   ]
 }
