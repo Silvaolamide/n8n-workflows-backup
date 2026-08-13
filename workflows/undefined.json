@@ -1,54 +1,43 @@
 {
-  "updatedAt": "2026-05-08T17:49:28.965Z",
-  "createdAt": "2026-05-08T17:49:28.965Z",
-  "id": "EgrMnJcjnPotkYTs",
-  "name": "TheAwakeningWithLami-TitleSwitch",
+  "updatedAt": "2026-05-12T12:07:31.000Z",
+  "createdAt": "2026-05-12T11:00:23.100Z",
+  "id": "M5InWtj6Dkk3VU2p",
+  "name": "LeapAI",
   "active": false,
   "isArchived": false,
   "nodes": [
     {
       "parameters": {},
-      "id": "1f82e291-8b98-42ad-a37a-1f50270e64ac",
-      "name": "Execute Workflow Trigger",
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -224,
-        -16
-      ]
+        -240,
+        -32
+      ],
+      "id": "0cdfdf1d-bcb7-4c79-b2ab-d1b6b6437a42",
+      "name": "When clicking ‘Execute workflow’"
     },
     {
       "parameters": {
-        "resource": "video",
-        "operation": "update",
-        "videoId": "={{ $json.videoId }}",
-        "title": "={{ $json.newTitle }}",
-        "regionCode": "US",
-        "categoryId": "22",
-        "updateFields": {}
+        "url": "https://www.opportunitiesforafricans.com/feed/",
+        "options": {}
       },
-      "type": "n8n-nodes-base.youTube",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
       "position": [
-        0,
-        -16
+        -64,
+        -32
       ],
-      "id": "fa27dd4d-1bd1-4fa3-860b-bf9f4f45bbf2",
-      "name": "Update a video",
-      "credentials": {
-        "youTubeOAuth2Api": {
-          "id": "HPVY6Iwtp4koiJ2j",
-          "name": "YouTube account"
-        }
-      }
+      "id": "93a70293-ce88-4ec6-b8ae-6e79e841314a",
+      "name": "RSS Read"
     }
   ],
   "connections": {
-    "Execute Workflow Trigger": {
+    "When clicking ‘Execute workflow’": {
       "main": [
         [
           {
-            "node": "Update a video",
+            "node": "RSS Read",
             "type": "main",
             "index": 0
           }
@@ -60,29 +49,20 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": true
-  },
+  "meta": null,
   "pinData": {},
-  "versionId": "65d48767-12b2-4b86-98f6-a965ebea7e97",
+  "versionId": "e15d7658-ef17-4698-b1bf-24cda9fd3a35",
   "activeVersionId": null,
   "triggerCount": 0,
   "shared": [
     {
-      "updatedAt": "2026-05-08T17:49:29.218Z",
-      "createdAt": "2026-05-08T17:49:29.218Z",
+      "updatedAt": "2026-05-12T11:00:23.125Z",
+      "createdAt": "2026-05-12T11:00:23.125Z",
       "role": "workflow:owner",
-      "workflowId": "EgrMnJcjnPotkYTs",
+      "workflowId": "M5InWtj6Dkk3VU2p",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
   "activeVersion": null,
-  "tags": [
-    {
-      "updatedAt": "2026-05-08T17:49:24.248Z",
-      "createdAt": "2026-05-08T17:49:24.248Z",
-      "id": "j7Xi9lB2vRIaB0q1",
-      "name": "Youtube Title Switch"
-    }
-  ]
+  "tags": []
 }
