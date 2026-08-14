@@ -1,158 +1,104 @@
 {
-  "updatedAt": "2026-06-11T11:07:08.000Z",
-  "createdAt": "2026-06-04T10:50:20.073Z",
-  "id": "d0FxRul8TEDNFnKn",
-  "name": "Doctor Masterclass Email Blast",
+  "updatedAt": "2026-05-31T15:12:22.000Z",
+  "createdAt": "2026-05-31T15:11:35.110Z",
+  "id": "BS09OMnZEluo3LUz",
+  "name": "LamiAI SEO - 1 (Schedule & Orchestrator)",
   "active": false,
   "isArchived": false,
   "nodes": [
     {
-      "parameters": {},
-      "id": "05e6118a-c5ca-4aba-83f5-5d81a5b304e7",
-      "name": "When clicking \"Execute\"",
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [
-        -688,
-        16
-      ]
-    },
-    {
       "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1Svk2jHnE4UBD3YgQx84uIZMn6FQh5v4vXDl6xV71VMI",
-          "mode": "list",
-          "cachedResultName": "send-mail-ai",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Svk2jHnE4UBD3YgQx84uIZMn6FQh5v4vXDl6xV71VMI/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Sheet1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Svk2jHnE4UBD3YgQx84uIZMn6FQh5v4vXDl6xV71VMI/edit#gid=0"
-        },
-        "options": {}
-      },
-      "id": "d71d29e4-ba8c-4d0a-acee-36751ba1bfa3",
-      "name": "Get Doctors List",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.5,
-      "position": [
-        -464,
-        16
-      ],
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "Op0zEaUmINruODTB",
-          "name": "Unnamed credential"
+        "rule": {
+          "interval": [
+            {}
+          ]
         }
-      }
-    },
-    {
-      "parameters": {
-        "options": {}
       },
-      "id": "49980ee6-ce98-4b32-af1f-99d0d0e7c450",
-      "name": "Loop Through Rows",
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        -256,
-        16
-      ]
-    },
-    {
-      "parameters": {
-        "sendTo": "={{ $json.Email }}",
-        "subject": "Top Doctors are Winning with AI - Dont be left out!",
-        "emailType": "text",
-        "message": "=Hello Dr. {{ $json.Name }},\n\nChatGPT just launched special versions (GPTs) for verified clinicians.\n\nThe big deal:\n- AI is about to become a compulsory part of the Medical Practice Worldwide.\n\nWe don’t have widespread AI medical adoption in Nigeria yet. But it’s coming. \nThe question is: are you ready?\n\nMy name is Olamide Agunkejoye (Lami), and I was the AI Specialist for the APN 2025 LOC (I built the automation behind the design and distribution of your APN 2025 certificate. If your Certificate was emailed to you, that was an AI I built).\n\nI am putting together a private, high-yield AI Masterclass for Top Medical Professionals to help Nigerian doctors integrate AI into their lives, and use AI for career growth.\n\nAre you open to seeing the brief curriculum?\n\nBest regards,\n\nOlamide Agunkejoye (Lami)\nAI Specialist",
-        "options": {}
-      },
-      "id": "792c3394-45c1-4dbe-961d-a07af8fc5a7f",
-      "name": "Send Personalized Email",
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.1,
-      "position": [
-        0,
-        32
-      ],
-      "webhookId": "67ecfd33-08c9-4b46-aca6-6237ba65e76b",
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "D4plN7kNEqnydIXQ",
-          "name": "Gmail account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "amount": 30
-      },
-      "id": "1ef78efc-d972-4f13-9159-19b8e0c6b5bc",
-      "name": "60s Anti-Spam Buffer",
-      "type": "n8n-nodes-base.wait",
+      "id": "03da7682-33f4-4845-9065-feee69625343",
+      "name": "Schedule Trigger (Daily)",
+      "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
-        240,
-        32
-      ],
-      "webhookId": "415cb971-a584-4814-99ae-7f39b5db15cb"
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const keywords = [\n  \"learning AI in Benin City\",\n  \"Learning AI in Nigeria\",\n  \"AI Tutorials in Benin\",\n  \"AI Tutorials in Nigeria\",\n  \"Making Money from AI\",\n  \"AI for Content Creators\",\n  \"AI for Doctors\",\n  \"How to make money through AI\"\n];\n\nconst offset = new Date().getDate();\nconst selectedKeyword = keywords[offset % keywords.length];\n\nreturn {\n  json: {\n    keyword: selectedKeyword,\n    tone: \"informative\",\n    postLength: \"medium\",\n    includeLocalRefs: true,\n    triggerTime: new Date().toISOString()\n  }\n};"
+      },
+      "id": "b9a337c1-a883-427b-b3ef-8ca561e1222c",
+      "name": "Select Today's Keyword",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-n8n-webhook-url.hooks.n8n.cloud/webhook/generate-seo-post",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-SECRET",
+              "value": "your-secret-auth-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "keyword",
+              "value": "={{ $json.keyword }}"
+            },
+            {
+              "name": "tone",
+              "value": "={{ $json.tone }}"
+            },
+            {
+              "name": "postLength",
+              "value": "={{ $json.postLength }}"
+            },
+            {
+              "name": "includeLocalRefs",
+              "value": "={{ $json.includeLocalRefs }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c33001d0-2406-4f6a-b05f-890cb2453352",
+      "name": "Trigger Post Creator Content Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        448,
+        0
+      ]
     }
   ],
   "connections": {
-    "When clicking \"Execute\"": {
+    "Schedule Trigger (Daily)": {
       "main": [
         [
           {
-            "node": "Get Doctors List",
+            "node": "Select Today's Keyword",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get Doctors List": {
+    "Select Today's Keyword": {
       "main": [
         [
           {
-            "node": "Loop Through Rows",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Loop Through Rows": {
-      "main": [
-        [],
-        [
-          {
-            "node": "Send Personalized Email",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send Personalized Email": {
-      "main": [
-        [
-          {
-            "node": "60s Anti-Spam Buffer",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "60s Anti-Spam Buffer": {
-      "main": [
-        [
-          {
-            "node": "Loop Through Rows",
+            "node": "Trigger Post Creator Content Workflow",
             "type": "main",
             "index": 0
           }
@@ -164,22 +110,27 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": true
-  },
+  "meta": null,
   "pinData": {},
-  "versionId": "4aa23663-d3e3-458c-9295-2f3590de9c00",
+  "versionId": "3b76b650-f1ab-48eb-be09-4a5256e20471",
   "activeVersionId": null,
   "triggerCount": 0,
   "shared": [
     {
-      "updatedAt": "2026-06-04T10:50:20.122Z",
-      "createdAt": "2026-06-04T10:50:20.122Z",
+      "updatedAt": "2026-05-31T15:11:35.138Z",
+      "createdAt": "2026-05-31T15:11:35.138Z",
       "role": "workflow:owner",
-      "workflowId": "d0FxRul8TEDNFnKn",
+      "workflowId": "BS09OMnZEluo3LUz",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
   "activeVersion": null,
-  "tags": []
+  "tags": [
+    {
+      "updatedAt": "2026-05-31T15:11:53.910Z",
+      "createdAt": "2026-05-31T15:11:53.910Z",
+      "id": "eoQprtBqrdPU1DK6",
+      "name": "LamiAI SEO"
+    }
+  ]
 }
