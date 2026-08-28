@@ -1,61 +1,54 @@
 {
-  "updatedAt": "2026-08-14T06:25:08.000Z",
-  "createdAt": "2026-08-13T21:50:13.032Z",
-  "id": "OFXHDMXbGkb4bpB1",
-  "name": "LEAP - PUB - WORDPRESS",
+  "updatedAt": "2026-05-08T17:50:34.000Z",
+  "createdAt": "2025-12-18T17:46:59.458Z",
+  "id": "P0f98ymdUzQhM2Dp",
+  "name": "AIWithLami-TitleSwitch",
   "active": false,
   "isArchived": false,
   "nodes": [
     {
       "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
+      "id": "16a6d24b-4810-4a2f-a99b-1ab3b871be78",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
       "position": [
-        -192,
-        -160
-      ],
-      "id": "f4adb67f-67f1-48e8-b474-360dbe0c5b39",
-      "name": "When clicking ‘Execute workflow’"
+        -224,
+        -16
+      ]
     },
     {
       "parameters": {
-        "url": "https://app.leapai.com.ng/wp-json/wp/v2/media",
-        "options": {}
+        "resource": "video",
+        "operation": "update",
+        "videoId": "={{ $json.videoId }}",
+        "title": "={{ $json.newTitle }}",
+        "regionCode": "US",
+        "categoryId": "22",
+        "updateFields": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
       "position": [
-        208,
-        0
+        0,
+        -16
       ],
-      "id": "1b0f8164-5fce-4247-9409-69e57ba0d67c",
-      "name": "Upload Image to WordPress"
-    },
-    {
-      "parameters": {
-        "inputSource": "passthrough"
-      },
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        -32,
-        0
-      ],
-      "id": "e6172c82-9dfc-4c84-b51f-2c9ff6064977",
-      "name": "When Executed by Another Workflow"
+      "id": "d4566e7b-1f3a-4052-9326-0861b5ba3743",
+      "name": "Update a video",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "HPVY6Iwtp4koiJ2j",
+          "name": "YouTube account"
+        }
+      }
     }
   ],
   "connections": {
-    "When clicking ‘Execute workflow’": {
-      "main": [
-        []
-      ]
-    },
-    "When Executed by Another Workflow": {
+    "Execute Workflow Trigger": {
       "main": [
         [
           {
-            "node": "Upload Image to WordPress",
+            "node": "Update a video",
             "type": "main",
             "index": 0
           }
@@ -67,20 +60,29 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "pinData": {},
-  "versionId": "25d33b0b-1c44-4f30-b571-70943a73461f",
+  "versionId": "234a0965-bbed-437b-b643-e6ed4679b2a2",
   "activeVersionId": null,
   "triggerCount": 0,
   "shared": [
     {
-      "updatedAt": "2026-08-13T21:50:13.065Z",
-      "createdAt": "2026-08-13T21:50:13.065Z",
+      "updatedAt": "2025-12-18T17:46:59.493Z",
+      "createdAt": "2025-12-18T17:46:59.493Z",
       "role": "workflow:owner",
-      "workflowId": "OFXHDMXbGkb4bpB1",
+      "workflowId": "P0f98ymdUzQhM2Dp",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
   "activeVersion": null,
-  "tags": []
+  "tags": [
+    {
+      "updatedAt": "2026-05-08T17:49:24.248Z",
+      "createdAt": "2026-05-08T17:49:24.248Z",
+      "id": "j7Xi9lB2vRIaB0q1",
+      "name": "Youtube Title Switch"
+    }
+  ]
 }
