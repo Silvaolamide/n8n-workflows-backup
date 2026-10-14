@@ -1,92 +1,23 @@
 {
-  "updatedAt": "2026-05-31T15:15:38.000Z",
-  "createdAt": "2026-05-31T15:13:21.674Z",
-  "id": "ynZN0Rikc3R55VJI",
-  "name": "LamiAI SEO - 2 (Content Creator & Publisher)",
+  "updatedAt": "2026-05-31T15:12:22.000Z",
+  "createdAt": "2026-05-31T15:11:35.110Z",
+  "id": "BS09OMnZEluo3LUz",
+  "name": "LamiAI SEO - 1 (Schedule & Orchestrator)",
   "active": false,
   "isArchived": false,
   "nodes": [
     {
       "parameters": {
-        "httpMethod": "POST",
-        "path": "generate-seo-post",
-        "options": {}
-      },
-      "id": "78381c73-b955-4bf4-9d40-42fab67e5d15",
-      "name": "Webhook Receiver",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1.1,
-      "position": [
-        -896,
-        112
-      ],
-      "webhookId": "8f3c306b-c935-47fd-90b5-8b76f96647ce"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={{ $env.GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY' }}",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"You are a pro SEO copywriter and localized marketing strategist for Benin City, Edo State and Nigeria. Write a comprehensive, SEO-optimized blog article about: '\" + $json.body.keyword + \"'. Tone: '\" + ($json.body.tone || \"informative\") + \"'. Length: '\" + ($json.body.postLength || \"medium\") + \"'. Always write structured, compelling content with clear headers and bullet points. Include relevant local landmarks, culture, and context from Benin City (like Oba Market, GRA, UNIBEN, King's Square, Ring Road, Edo Tech Hub) to ensure authenticity and state-of-the-art positioning. Provide actionable insights on earning through AI or mastering digital tutorials. You MUST respond with a raw JSON object with exactly these keys: 'title' (compelling title containing the target keyword), 'contentHtml' (beautified, detailed HTML article with headings and paragraphs), 'excerpt' (short 2-sentence summary/meta description), 'tags' (array of 3-5 tags). Output raw JSON only: do not wrap in markdown block style triple-backticks.\"\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"responseMimeType\": \"application/json\"\n  }\n}",
-        "options": {}
-      },
-      "id": "4d10192c-c55a-4454-9564-da2d54676b8e",
-      "name": "Draft via Google Gemini (Free Model)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [
-        -688,
-        112
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "try {\n  let text = $json.candidates[0].content.parts[0].text.trim();\n  const b = String.fromCharCode(96);\n  const bt3 = b + b + b;\n  if (text.startsWith(bt3 + 'json')) {\n    text = text.slice(7);\n  } else if (text.startsWith(bt3)) {\n    text = text.slice(3);\n  }\n  if (text.endsWith(bt3)) {\n    text = text.slice(0, -3);\n  }\n  const articleData = JSON.parse(text.trim());\n  return {\n    json: {\n      parsed: true,\n      title: articleData.title,\n      contentHtml: articleData.contentHtml,\n      excerpt: articleData.excerpt,\n      tags: articleData.tags || []\n    }\n  };\n} catch (e) {\n  return {\n    json: {\n      parsed: false,\n      rawResponse: $json,\n      error: e.message\n    }\n  };\n}"
-      },
-      "id": "bc7a6357-a5ed-4b7c-8899-ffdfeccdf3c4",
-      "name": "Parse Gemini JSON Text",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -464,
-        112
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "boolean": [
-            {
-              "value1": "={{ $json.parsed }}",
-              "value2": true
-            }
+        "rule": {
+          "interval": [
+            {}
           ]
         }
       },
-      "id": "92dbbd3c-475e-46fe-b636-b989ad35b80f",
-      "name": "Check If Parsing Succeeded",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [
-        -240,
-        112
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://your-wordpress-site.com/wp-json/wp/v2/posts",
-        "authentication": "basicAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"title\": \"={{ $json.title }}\",\n  \"content\": \"={{ $json.contentHtml }}\",\n  \"excerpt\": \"={{ $json.excerpt }}\",\n  \"status\": \"publish\"\n}",
-        "options": {}
-      },
-      "id": "c4fda988-aad4-46e9-aa24-22aabfe8e98f",
-      "name": "Publish to WordPress REST API",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
+      "id": "03da7682-33f4-4845-9065-feee69625343",
+      "name": "Schedule Trigger (Daily)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
       "position": [
         0,
         0
@@ -94,57 +25,80 @@
     },
     {
       "parameters": {
-        "jsCode": "return {\n  json: {\n    status: \"failed\",\n    message: \"Could not parse Gemini API response. Check raw text payloads.\",\n    error: $json.error\n  }\n};"
+        "jsCode": "const keywords = [\n  \"learning AI in Benin City\",\n  \"Learning AI in Nigeria\",\n  \"AI Tutorials in Benin\",\n  \"AI Tutorials in Nigeria\",\n  \"Making Money from AI\",\n  \"AI for Content Creators\",\n  \"AI for Doctors\",\n  \"How to make money through AI\"\n];\n\nconst offset = new Date().getDate();\nconst selectedKeyword = keywords[offset % keywords.length];\n\nreturn {\n  json: {\n    keyword: selectedKeyword,\n    tone: \"informative\",\n    postLength: \"medium\",\n    includeLocalRefs: true,\n    triggerTime: new Date().toISOString()\n  }\n};"
       },
-      "id": "3e772c48-75dd-418b-a373-230d028283a0",
-      "name": "Report Parse Error",
+      "id": "b9a337c1-a883-427b-b3ef-8ca561e1222c",
+      "name": "Select Today's Keyword",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        0,
-        208
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-n8n-webhook-url.hooks.n8n.cloud/webhook/generate-seo-post",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-SECRET",
+              "value": "your-secret-auth-key"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "keyword",
+              "value": "={{ $json.keyword }}"
+            },
+            {
+              "name": "tone",
+              "value": "={{ $json.tone }}"
+            },
+            {
+              "name": "postLength",
+              "value": "={{ $json.postLength }}"
+            },
+            {
+              "name": "includeLocalRefs",
+              "value": "={{ $json.includeLocalRefs }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c33001d0-2406-4f6a-b05f-890cb2453352",
+      "name": "Trigger Post Creator Content Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        448,
+        0
       ]
     }
   ],
   "connections": {
-    "Webhook Receiver": {
+    "Schedule Trigger (Daily)": {
       "main": [
         [
           {
-            "node": "Draft via Google Gemini (Free Model)",
+            "node": "Select Today's Keyword",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Draft via Google Gemini (Free Model)": {
+    "Select Today's Keyword": {
       "main": [
         [
           {
-            "node": "Parse Gemini JSON Text",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse Gemini JSON Text": {
-      "main": [
-        [
-          {
-            "node": "Check If Parsing Succeeded",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Check If Parsing Succeeded": {
-      "main": [
-        [
-          {
-            "node": "Publish to WordPress REST API",
+            "node": "Trigger Post Creator Content Workflow",
             "type": "main",
             "index": 0
           }
@@ -158,15 +112,15 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "2da89a3c-5239-40fb-ad8e-d7ecf508a035",
+  "versionId": "3b76b650-f1ab-48eb-be09-4a5256e20471",
   "activeVersionId": null,
   "triggerCount": 0,
   "shared": [
     {
-      "updatedAt": "2026-05-31T15:13:21.708Z",
-      "createdAt": "2026-05-31T15:13:21.708Z",
+      "updatedAt": "2026-05-31T15:11:35.138Z",
+      "createdAt": "2026-05-31T15:11:35.138Z",
       "role": "workflow:owner",
-      "workflowId": "ynZN0Rikc3R55VJI",
+      "workflowId": "BS09OMnZEluo3LUz",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
