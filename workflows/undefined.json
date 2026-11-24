@@ -1,104 +1,54 @@
 {
-  "updatedAt": "2026-05-31T15:12:22.000Z",
-  "createdAt": "2026-05-31T15:11:35.110Z",
-  "id": "BS09OMnZEluo3LUz",
-  "name": "LamiAI SEO - 1 (Schedule & Orchestrator)",
+  "updatedAt": "2026-05-08T17:49:28.965Z",
+  "createdAt": "2026-05-08T17:49:28.965Z",
+  "id": "EgrMnJcjnPotkYTs",
+  "name": "TheAwakeningWithLami-TitleSwitch",
   "active": false,
   "isArchived": false,
   "nodes": [
     {
+      "parameters": {},
+      "id": "1f82e291-8b98-42ad-a37a-1f50270e64ac",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        -16
+      ]
+    },
+    {
       "parameters": {
-        "rule": {
-          "interval": [
-            {}
-          ]
-        }
+        "resource": "video",
+        "operation": "update",
+        "videoId": "={{ $json.videoId }}",
+        "title": "={{ $json.newTitle }}",
+        "regionCode": "US",
+        "categoryId": "22",
+        "updateFields": {}
       },
-      "id": "03da7682-33f4-4845-9065-feee69625343",
-      "name": "Schedule Trigger (Daily)",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.1,
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
       "position": [
         0,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const keywords = [\n  \"learning AI in Benin City\",\n  \"Learning AI in Nigeria\",\n  \"AI Tutorials in Benin\",\n  \"AI Tutorials in Nigeria\",\n  \"Making Money from AI\",\n  \"AI for Content Creators\",\n  \"AI for Doctors\",\n  \"How to make money through AI\"\n];\n\nconst offset = new Date().getDate();\nconst selectedKeyword = keywords[offset % keywords.length];\n\nreturn {\n  json: {\n    keyword: selectedKeyword,\n    tone: \"informative\",\n    postLength: \"medium\",\n    includeLocalRefs: true,\n    triggerTime: new Date().toISOString()\n  }\n};"
-      },
-      "id": "b9a337c1-a883-427b-b3ef-8ca561e1222c",
-      "name": "Select Today's Keyword",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        224,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://your-n8n-webhook-url.hooks.n8n.cloud/webhook/generate-seo-post",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-N8N-SECRET",
-              "value": "your-secret-auth-key"
-            }
-          ]
-        },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "keyword",
-              "value": "={{ $json.keyword }}"
-            },
-            {
-              "name": "tone",
-              "value": "={{ $json.tone }}"
-            },
-            {
-              "name": "postLength",
-              "value": "={{ $json.postLength }}"
-            },
-            {
-              "name": "includeLocalRefs",
-              "value": "={{ $json.includeLocalRefs }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "c33001d0-2406-4f6a-b05f-890cb2453352",
-      "name": "Trigger Post Creator Content Workflow",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [
-        448,
-        0
-      ]
+        -16
+      ],
+      "id": "fa27dd4d-1bd1-4fa3-860b-bf9f4f45bbf2",
+      "name": "Update a video",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "HPVY6Iwtp4koiJ2j",
+          "name": "YouTube account"
+        }
+      }
     }
   ],
   "connections": {
-    "Schedule Trigger (Daily)": {
+    "Execute Workflow Trigger": {
       "main": [
         [
           {
-            "node": "Select Today's Keyword",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Select Today's Keyword": {
-      "main": [
-        [
-          {
-            "node": "Trigger Post Creator Content Workflow",
+            "node": "Update a video",
             "type": "main",
             "index": 0
           }
@@ -110,27 +60,29 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "meta": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
   "pinData": {},
-  "versionId": "3b76b650-f1ab-48eb-be09-4a5256e20471",
+  "versionId": "65d48767-12b2-4b86-98f6-a965ebea7e97",
   "activeVersionId": null,
   "triggerCount": 0,
   "shared": [
     {
-      "updatedAt": "2026-05-31T15:11:35.138Z",
-      "createdAt": "2026-05-31T15:11:35.138Z",
+      "updatedAt": "2026-05-08T17:49:29.218Z",
+      "createdAt": "2026-05-08T17:49:29.218Z",
       "role": "workflow:owner",
-      "workflowId": "BS09OMnZEluo3LUz",
+      "workflowId": "EgrMnJcjnPotkYTs",
       "projectId": "f2EbmniIBR8oZwzD"
     }
   ],
   "activeVersion": null,
   "tags": [
     {
-      "updatedAt": "2026-05-31T15:11:53.910Z",
-      "createdAt": "2026-05-31T15:11:53.910Z",
-      "id": "eoQprtBqrdPU1DK6",
-      "name": "LamiAI SEO"
+      "updatedAt": "2026-05-08T17:49:24.248Z",
+      "createdAt": "2026-05-08T17:49:24.248Z",
+      "id": "j7Xi9lB2vRIaB0q1",
+      "name": "Youtube Title Switch"
     }
   ]
 }
